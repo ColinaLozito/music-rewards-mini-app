@@ -1,5 +1,5 @@
 // Home screen - Challenge list (Expo Router)
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { router } from 'expo-router';
 import { ChallengeCard } from '../../components/challenge/ChallengeCard';
@@ -13,6 +13,11 @@ export default function HomeScreen() {
   const currentTrack = useMusicStore(selectCurrentTrack);
   const isPlaying = useMusicStore(selectIsPlaying);
   const { play } = useMusicPlayer();
+  const loadChallenges = useMusicStore((s) => s.loadChallenges);
+
+  useEffect(() => {
+    loadChallenges();
+  }, [loadChallenges]);
 
   const handlePlayChallenge = async (challenge: MusicChallenge) => {
     try {

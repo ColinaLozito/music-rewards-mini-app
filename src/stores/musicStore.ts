@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MusicChallenge } from '../types';
-import { SAMPLE_CHALLENGES } from '../constants/theme';
+import { SAMPLE_CHALLENGES } from '../constants/challenges';
 
 interface MusicStore {
   // State
@@ -25,7 +25,7 @@ export const useMusicStore = create<MusicStore>()(
   persist(
     (set, get) => ({
       // Initial state
-      challenges: SAMPLE_CHALLENGES,
+      challenges: [],
       currentTrack: null,
       isPlaying: false,
       currentPosition: 0,
