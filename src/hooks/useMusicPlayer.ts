@@ -29,7 +29,6 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
   const setCurrentPosition = useMusicStore((state) => state.setCurrentPosition);
   const updateProgress = useMusicStore((state) => state.updateProgress);
   const markChallengeComplete = useMusicStore((state) => state.markChallengeComplete);
-  const addPoints = useUserStore((state) => state.addPoints);
   const completeChallenge = useUserStore((state) => state.completeChallenge);
 
   // Sync playback state to store (with ref to prevent loops)
@@ -59,13 +58,12 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
       updateProgress(currentTrack.id, progressPercentage);
     }
 
-    // Check if track is completed (98% threshold for Challenge Integrity)
+  // Check if track is completed (98% threshold for Challenge Integrity)
     if (progressPercentage >= 98 && !currentTrack.completed) {
       markChallengeComplete(currentTrack.id);
       completeChallenge(currentTrack.id);
       // Only award points if not already awarded for this challenge
       if (!awarded[currentTrack.id]) {
-        addPoints(currentTrack.points);
         recordAward(currentTrack.id, currentTrack.points);
       }
     }

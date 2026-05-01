@@ -1,6 +1,6 @@
 // Profile screen - User progress and stats
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { useMusicStore, selectChallenges } from '../../stores/musicStore';
 import { useUserStore, selectTotalPoints, selectCompletedChallenges } from '../../stores/userStore';
@@ -10,9 +10,29 @@ export default function ProfileScreen() {
   const challenges = useMusicStore(selectChallenges);
   const totalPoints = useUserStore(selectTotalPoints);
   const completedChallenges = useUserStore(selectCompletedChallenges);
+  const resetProgress = useUserStore((state) => state.resetProgress);
+  const resetMusic = useMusicStore((state) => state.reset);
 
   const totalChallenges = challenges.length;
   const completionRate = totalChallenges > 0 ? (completedChallenges.length / totalChallenges) * 100 : 0;
+
+  const handleReset = () => {
+    Alert.alert(
+      'Reset App',
+      'This will erase all local data: points, progress, and completed challenges. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Reset',
+          style: 'destructive',
+          onPress: () => {
+            resetProgress();
+            resetMusic();
+          },
+        },
+      ]
+    );
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -41,6 +61,7 @@ export default function ProfileScreen() {
         <Text style={styles.sectionTitle}>Challenge Progress</Text>
         {challenges.map((challenge) => {
           const isCompleted = completedChallenges.includes(challenge.id);
+          const displayProgress = isCompleted ? 100 : challenge.progress;
           return (
             <View key={challenge.id} style={styles.challengeItem}>
               <View style={styles.challengeHeader}>
@@ -56,12 +77,12 @@ export default function ProfileScreen() {
                 <View 
                   style={[
                     styles.progressFill,
-                    { width: `${challenge.progress}%` }
+                    { width: `${displayProgress}%` }
                   ]} 
                 />
               </View>
               <Text style={styles.progressText}>
-                {Math.round(challenge.progress)}% • {challenge.points} points
+                {Math.round(displayProgress)}% • {challenge.points} points
               </Text>
             </View>
           );
@@ -98,6 +119,17 @@ export default function ProfileScreen() {
             Complete challenges to unlock achievements!
           </Text>
         )}
+      </GlassCard>
+
+      {/* Reset App Button */}
+      <GlassCard style={styles.resetCard}>
+        <Text style={styles.sectionTitle}>Danger Zone</Text>
+        <Text style={styles.resetDescription}>
+          Erase all local data: points, progress, and completed challenges.
+        </Text>
+        <View style={styles.resetButton} onTouchEnd={handleReset}>
+          <Text style={styles.resetButtonText}>Reset App</Text>
+        </View>
       </GlassCard>
     </ScrollView>
   );
@@ -198,5 +230,26 @@ const styles = StyleSheet.create({
     color: THEME.colors.text.tertiary,
     textAlign: 'center',
     fontStyle: 'italic',
+  },
+  resetCard: {
+    marginBottom: THEME.spacing.xl,
+    borderColor: '#ff4444',
+    borderWidth: 1,
+  },
+  resetDescription: {
+    fontSize: THEME.fonts.sizes.sm,
+    color: THEME.colors.text.secondary,
+    marginBottom: THEME.spacing.md,
+  },
+  resetButton: {
+    backgroundColor: '#ff4444',
+    padding: THEME.spacing.md,
+    borderRadius: THEME.borderRadius.md,
+    alignItems: 'center',
+  },
+  resetButtonText: {
+    color: '#fff',
+    fontSize: THEME.fonts.sizes.md,
+    fontWeight: 'bold',
   },
 });

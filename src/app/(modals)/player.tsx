@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { GlassCard, GlassButton } from '../../components/ui/GlassCard';
 import { useMusicPlayer } from '../../hooks/useMusicPlayer';
-import { useMusicStore, selectCurrentTrack, selectIsPlaying } from '../../stores/musicStore';
+import { useMusicStore, selectCurrentTrack, selectIsPlaying, selectChallenges } from '../../stores/musicStore';
 import { useUserStore } from '../../stores/userStore';
 import { THEME } from '../../constants/theme';
 
@@ -29,6 +29,10 @@ export default function PlayerModal() {
   } = useMusicPlayer();
   const completedChallenges = useUserStore((s) => s.completedChallenges);
   const setCurrentPosition = useMusicStore((state) => state.setCurrentPosition);
+  const challenges = useMusicStore(selectChallenges);
+  
+  // Get the live challenge data from store (not stale currentTrack)
+  const liveChallenge = challenges.find(c => c.id === currentTrack?.id) || currentTrack;
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -101,18 +105,21 @@ export default function PlayerModal() {
     );
   }
 
+  // Use liveChallenge for display, fallback to currentTrack
+  const displayChallenge = liveChallenge || currentTrack;
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
         {/* Track Info */}
         <GlassCard style={styles.trackInfoCard}>
-          <Text style={styles.trackTitle}>{currentTrack.title}</Text>
-          <Text style={styles.trackArtist}>{currentTrack.artist}</Text>
-          <Text style={styles.trackDescription}>{currentTrack.description}</Text>
-          
+          <Text style={styles.trackTitle}>{displayChallenge.title}</Text>
+          <Text style={styles.trackArtist}>{displayChallenge.artist}</Text>
+          <Text style={styles.trackDescription}>{displayChallenge.description}</Text>
+           
           <View style={styles.pointsContainer}>
             <Text style={styles.pointsLabel}>Challenge Points</Text>
-            <Text style={styles.pointsValue}>{currentTrack.points}</Text>
+            <Text style={styles.pointsValue}>{displayChallenge.points}</Text>
           </View>
         </GlassCard>
 
@@ -200,12 +207,12 @@ export default function PlayerModal() {
           <View style={styles.challengeInfo}>
             <Text style={[
               styles.challengeStatus,
-              { color: currentTrack.completed ? THEME.colors.secondary : THEME.colors.accent }
+              { color: displayChallenge.completed ? THEME.colors.secondary : THEME.colors.accent }
             ]}>
-              {currentTrack.completed ? '✅ Completed' : '🎧 In Progress'}
+              {displayChallenge.completed ? '✅ Completed' : '🎧 In Progress'}
             </Text>
             <Text style={styles.challengeProgress}>
-              {Math.round(currentTrack.progress)}% of challenge complete
+              {Math.round(displayChallenge.progress)}% of challenge complete
             </Text>
           </View>
         </GlassCard>

@@ -18,6 +18,7 @@ interface MusicStore {
   markChallengeComplete: (challengeId: string) => void;
   setIsPlaying: (playing: boolean) => void;
   setCurrentPosition: (position: number) => void;
+  reset: () => void;
 }
 
 export const useMusicStore = create<MusicStore>()(
@@ -64,6 +65,15 @@ export const useMusicStore = create<MusicStore>()(
 
       setCurrentPosition: (position: number) => {
         set({ currentPosition: position });
+      },
+
+      reset: () => {
+        set({
+          challenges: SAMPLE_CHALLENGES,
+          currentTrack: null,
+          isPlaying: false,
+          currentPosition: 0,
+        });
       },
     }),
     {

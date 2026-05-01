@@ -5,16 +5,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface UserStore {
   // State
-  totalPoints: number;
   completedChallenges: string[];
   totalSecondsListened: number;
   awardedChallenges: Record<string, number>; // challengeId -> pointsAwarded
-  
+
   // Actions
-  addPoints: (points: number) => void;
   completeChallenge: (challengeId: string) => void;
   resetProgress: () => void;
-  updateListenedTime: (seconds: number) => void;
   recordAward: (challengeId: string, points: number) => void;
 }
 
@@ -22,18 +19,11 @@ export const useUserStore = create<UserStore>()(
   persist(
     (set, get) => ({
       // Initial state
-      totalPoints: 0,
       completedChallenges: [],
       totalSecondsListened: 0,
       awardedChallenges: {},
-      
+
       // Actions
-      addPoints: (points: number) => {
-        set((state) => ({
-          totalPoints: state.totalPoints + points,
-        }));
-      },
-      
       completeChallenge: (challengeId: string) => {
         set((state) => ({
           completedChallenges: state.completedChallenges.includes(challengeId)
@@ -41,19 +31,13 @@ export const useUserStore = create<UserStore>()(
             : [...state.completedChallenges, challengeId],
         }));
       },
-      
+
       resetProgress: () => {
         set({
-          totalPoints: 0,
           completedChallenges: [],
           totalSecondsListened: 0,
+          awardedChallenges: {},
         });
-      },
-
-      updateListenedTime: (seconds: number) => {
-        set((state) => ({
-          totalSecondsListened: state.totalSecondsListened + seconds,
-        }));
       },
 
       recordAward: (challengeId: string, points: number) => {
@@ -65,18 +49,21 @@ export const useUserStore = create<UserStore>()(
     {
       name: 'user-store',
       storage: createJSONStorage(() => AsyncStorage),
-      // Only persist challenges and awarded points, not listening time
+      // Only persist challenges and awarded points, NOT totalPoints (derived)
       partialize: (state) => ({
-        totalPoints: state.totalPoints,
         completedChallenges: state.completedChallenges,
         awardedChallenges: state.awardedChallenges,
+        totalSecondsListened: state.totalSecondsListened,
       }),
     }
   )
 );
 
 // Selector functions
-export const selectTotalPoints = (state: UserStore) => state.totalPoints;
 export const selectCompletedChallenges = (state: UserStore) => state.completedChallenges;
 export const selectTotalSecondsListened = (state: UserStore) => state.totalSecondsListened;
 export const selectAwardedChallenges = (state: UserStore) => state.awardedChallenges;
+export const selectTotalPoints = (state: UserStore) => {
+  // Calculate totalPoints from awardedChallenges (not persisted directly)
+  return Object.values(state.awardedChallenges).reduce((sum, points) => sum + points, 0);
+};
