@@ -1,5 +1,5 @@
 // useMusicPlayer hook - Integrates react-native-track-player with Zustand
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import TrackPlayer, {
   State,
   usePlaybackState,
@@ -16,11 +16,11 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
   // TrackPlayer hooks
   const playbackState = usePlaybackState();
   const progress = useProgress();
-  
+
   // Local state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Zustand store selectors
   const currentTrack = useMusicStore(selectCurrentTrack);
   const isPlaying = useMusicStore(selectIsPlaying);
@@ -32,36 +32,33 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
   const addPoints = useUserStore((state) => state.addPoints);
   const completeChallenge = useUserStore((state) => state.completeChallenge);
 
-  // Track playback state changes
+  // Sync playback state to store (with ref to prevent loops)
+  const prevPlayingRef = useRef(false);
   useEffect(() => {
-    // Some versions of usePlaybackState may return an object, so extract value if needed
     let stateValue: any = playbackState;
     if (typeof playbackState === 'object' && playbackState !== null && 'state' in playbackState) {
-      stateValue = playbackState.state;
+      stateValue = (playbackState as any).state;
     }
     const isCurrentlyPlaying = stateValue === State.Playing;
-    if (isCurrentlyPlaying !== isPlaying) {
+
+    if (prevPlayingRef.current !== isCurrentlyPlaying) {
+      prevPlayingRef.current = isCurrentlyPlaying;
       setIsPlaying(isCurrentlyPlaying);
     }
-  }, [playbackState, isPlaying, setIsPlaying]);
+  }, [playbackState]);
 
-  // Update position and calculate progress/points
+  // Throttled progress sync to store (every 5 seconds, not on every position change)
+  const lastSyncRef = useRef(0);
   useEffect(() => {
-    if (currentTrack && progress.position > 0) {
-      setCurrentPosition(progress.position);
-      
-      // Calculate progress percentage
-      const progressPercentage = (progress.position / progress.duration) * 100;
-      updateProgress(currentTrack.id, progressPercentage);
-      
-      // Check if track is completed (90% threshold to account for small timing issues)
-      if (progressPercentage >= 90 && !currentTrack.completed) {
-        markChallengeComplete(currentTrack.id);
-        completeChallenge(currentTrack.id);
-        addPoints(currentTrack.points);
-      }
-    }
-  }, [progress.position, progress.duration, currentTrack, setCurrentPosition, updateProgress, markChallengeComplete, completeChallenge, addPoints]);
+    if (!progress.position || !progress.duration || !currentTrack) return;
+
+    const now = Date.now();
+    if (now - lastSyncRef.current < 5000) return; // Throttle: sync every 5s
+    lastSyncRef.current = now;
+
+    const progressPercentage = (progress.position / progress.duration) * 100;
+    updateProgress(currentTrack.id, progressPercentage);
+  }, [progress.position, progress.duration, currentTrack?.id]);
 
   // Handle track player events
   useTrackPlayerEvents([Event.PlaybackError], (event) => {
@@ -75,10 +72,23 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
     try {
       setLoading(true);
       setError(null);
-      
+
+      // Save current track's progress before switching
+      if (currentTrack && currentTrack.id && currentTrack.id !== track.id) {
+        try {
+          const { position, duration } = await TrackPlayer.getProgress();
+          if (position > 0 && duration > 0) {
+            const progressPercentage = (position / duration) * 100;
+            updateProgress(currentTrack.id, Math.min(progressPercentage, 100));
+          }
+        } catch {
+          // Ignore errors getting position/duration
+        }
+      }
+
       // Ensure player is initialized before any action
       await setupTrackPlayer();
-      
+
       // Reset and add new track
       await TrackPlayer.reset();
       await TrackPlayer.add({
@@ -88,9 +98,16 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
         artist: track.artist,
         duration: track.duration,
       });
-      
+
       // Start playback
       await TrackPlayer.play();
+
+      // If track has existing progress, seek to saved position
+      if (track.progress > 0 && track.progress < 100) {
+        const savedPosition = (track.progress / 100) * track.duration;
+        await TrackPlayer.seekTo(savedPosition);
+      }
+
       setCurrentTrack(track);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Playback failed';
@@ -99,7 +116,7 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
     } finally {
       setLoading(false);
     }
-  }, [setCurrentTrack]);
+  }, [setCurrentTrack, currentTrack, updateProgress]);
 
   const pause = useCallback(async () => {
     try {
@@ -125,11 +142,12 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
     }
   }, []);
 
-  // Extract value for isPlaying return as well
+  // Extract isPlaying from playbackState for return
   let stateValue: any = playbackState;
   if (typeof playbackState === 'object' && playbackState !== null && 'state' in playbackState) {
-    stateValue = playbackState.state;
+    stateValue = (playbackState as any).state;
   }
+
   return {
     isPlaying: stateValue === State.Playing,
     currentTrack,

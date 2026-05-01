@@ -13,7 +13,6 @@ interface MusicStore {
   currentPosition: number;
   
   // Actions
-  loadChallenges: () => void;
   setCurrentTrack: (track: MusicChallenge) => void;
   updateProgress: (challengeId: string, progress: number) => void;
   markChallengeComplete: (challengeId: string) => void;
@@ -24,16 +23,11 @@ interface MusicStore {
 export const useMusicStore = create<MusicStore>()(
   persist(
     (set, get) => ({
-      // Initial state
-      challenges: [],
+      // Initial state - will be overridden by persisted state if it exists
+      challenges: SAMPLE_CHALLENGES,
       currentTrack: null,
       isPlaying: false,
       currentPosition: 0,
-
-      // Actions
-      loadChallenges: () => {
-        set({ challenges: SAMPLE_CHALLENGES });
-      },
 
       setCurrentTrack: (track: MusicChallenge) => {
         set({ currentTrack: track });

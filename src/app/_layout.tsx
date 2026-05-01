@@ -21,6 +21,17 @@ export default function RootLayout() {
         // Still set ready to true after a delay to prevent app from hanging
         setTimeout(() => setPlayerReady(true), 1000);
       });
+
+    // Cleanup: stop player on app unmount/reload to prevent double instances
+    return () => {
+      TrackPlayer.reset()
+        .then(() => {
+          //
+        })
+        .catch((err) => {
+          console.error('Error resetting TrackPlayer:', err);
+        });
+    };
   }, []);
 
   if (!playerReady) {

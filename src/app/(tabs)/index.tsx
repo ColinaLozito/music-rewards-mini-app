@@ -12,17 +12,29 @@ export default function HomeScreen() {
   const challenges = useMusicStore(selectChallenges);
   const currentTrack = useMusicStore(selectCurrentTrack);
   const isPlaying = useMusicStore(selectIsPlaying);
-  const { play } = useMusicPlayer();
-  const loadChallenges = useMusicStore((s) => s.loadChallenges);
-
-  useEffect(() => {
-    loadChallenges();
-  }, [loadChallenges]);
+  const { play, resume } = useMusicPlayer();
 
   const handlePlayChallenge = async (challenge: MusicChallenge) => {
+    // If this track is already playing, just open the modal (don't restart)
+    if (currentTrack?.id === challenge.id) {
+      router.push('/(modals)/player');
+      return;
+    }
+
+    // If this track is current but paused, resume playback
+    if (currentTrack?.id === challenge.id && !isPlaying) {
+      try {
+        await resume();
+        router.push('/(modals)/player');
+      } catch (error) {
+        console.error('Failed to resume challenge:', error);
+      }
+      return;
+    }
+
+    // Otherwise, play the new track
     try {
       await play(challenge);
-      // Navigate to player modal after starting playback
       router.push('/(modals)/player');
     } catch (error) {
       console.error('Failed to play challenge:', error);

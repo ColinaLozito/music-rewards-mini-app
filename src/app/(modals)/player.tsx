@@ -1,5 +1,5 @@
 // Player modal - Full-screen audio player (Expo Router modal)
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -32,17 +32,40 @@ export default function PlayerModal() {
     return `${minutes}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const getProgress = (): number => {
-    if (!duration || duration === 0) return 0;
-    return (currentPosition / duration) * 100;
-  };
+  const [isDragging, setIsDragging] = useState(false);
+  const [draggedPosition, setDraggedPosition] = useState(currentPosition);
+  const [progressBarWidth, setProgressBarWidth] = useState(300);
 
   const handleSeek = (percentage: number) => {
-    if (duration) {
-      const newPosition = (percentage / 100) * duration;
-      seekTo(newPosition);
-    }
+    if (!duration) return;
+    const newPosition = (percentage / 100) * duration;
+    seekTo(newPosition);
+    setDraggedPosition(newPosition);
   };
+
+  const handleDrag = (event: any) => {
+    if (!duration) return;
+    const { locationX } = event.nativeEvent;
+    const percentage = Math.max(0, Math.min(100, (locationX / progressBarWidth) * 100));
+    const newPosition = (percentage / 100) * duration;
+    setDraggedPosition(newPosition); // Update visual immediately
+    handleSeek(percentage);
+  };
+
+  const progressBarRef = useRef<View>(null);
+
+  const getProgress = (): number => {
+    if (!duration || duration === 0) return 0;
+    const position = isDragging ? draggedPosition : currentPosition;
+    return (position / duration) * 100;
+  };
+
+  // Reset dragged position when drag ends
+  useEffect(() => {
+    if (!isDragging) {
+      setDraggedPosition(currentPosition);
+    }
+  }, [isDragging, currentPosition]);
 
   const handlePlayPause = async () => {
     if (isPlaying) {
@@ -53,6 +76,9 @@ export default function PlayerModal() {
       }
     }
   };
+
+  // Format time display - use dragged position if dragging
+  const displayPosition = isDragging ? draggedPosition : currentPosition;
 
   if (error) {
     Alert.alert('Playback Error', error);
@@ -91,12 +117,23 @@ export default function PlayerModal() {
           <Text style={styles.progressLabel}>Listening Progress</Text>
           
           {/* Progress Bar */}
-          <TouchableOpacity 
+          <View
+            ref={progressBarRef}
             style={styles.progressTrack}
-            onPress={(event) => {
-              const { locationX, width } = event.nativeEvent as any;
-              const percentage = (locationX / width) * 100;
-              handleSeek(percentage);
+            onLayout={(event) => {
+              setProgressBarWidth(event.nativeEvent.layout.width);
+            }}
+            onTouchStart={(event) => {
+              setIsDragging(true);
+              handleDrag(event);
+            }}
+            onTouchMove={(event) => {
+              if (isDragging) {
+                handleDrag(event);
+              }
+            }}
+            onTouchEnd={() => {
+              setIsDragging(false);
             }}
           >
             <View style={styles.progressBackground}>
@@ -107,11 +144,11 @@ export default function PlayerModal() {
                 ]} 
               />
             </View>
-          </TouchableOpacity>
+          </View>
 
           {/* Time Display */}
           <View style={styles.timeContainer}>
-            <Text style={styles.timeText}>{formatTime(currentPosition)}</Text>
+            <Text style={styles.timeText}>{formatTime(displayPosition)}</Text>
             <Text style={styles.timeText}>{formatTime(duration)}</Text>
           </View>
 
