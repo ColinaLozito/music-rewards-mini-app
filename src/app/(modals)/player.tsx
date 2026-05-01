@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { GlassCard, GlassButton } from '../../components/ui/GlassCard';
 import { useMusicPlayer } from '../../hooks/useMusicPlayer';
+import { useMusicStore, selectCurrentTrack, selectIsPlaying } from '../../stores/musicStore';
+import { useUserStore } from '../../stores/userStore';
 import { THEME } from '../../constants/theme';
 
 export default function PlayerModal() {
@@ -25,6 +27,8 @@ export default function PlayerModal() {
     loading,
     error 
   } = useMusicPlayer();
+  const completedChallenges = useUserStore((s) => s.completedChallenges);
+  const setCurrentPosition = useMusicStore((state) => state.setCurrentPosition);
 
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
@@ -119,16 +123,22 @@ export default function PlayerModal() {
           {/* Progress Bar */}
           <View
             ref={progressBarRef}
-            style={styles.progressTrack}
+            style={[
+              styles.progressTrack,
+              !completedChallenges.includes(currentTrack?.id || '') && styles.progressDisabled
+            ]}
             onLayout={(event) => {
               setProgressBarWidth(event.nativeEvent.layout.width);
             }}
             onTouchStart={(event) => {
-              setIsDragging(true);
-              handleDrag(event);
+              // Only allow drag if challenge was already completed
+              if (completedChallenges.includes(currentTrack?.id || '')) {
+                setIsDragging(true);
+                handleDrag(event);
+              }
             }}
             onTouchMove={(event) => {
-              if (isDragging) {
+              if (isDragging && completedChallenges.includes(currentTrack?.id || '')) {
                 handleDrag(event);
               }
             }}
@@ -162,25 +172,20 @@ export default function PlayerModal() {
         <GlassCard style={styles.controlsCard}>
           <View style={styles.controlsRow}>
             <GlassButton
-              title="⏪ -10s"
-              onPress={() => handleSeek(Math.max(0, getProgress() - (10 / duration) * 100))}
+              title="🔄 Restart Track"
+              onPress={() => {
+                seekTo(0);
+                setCurrentPosition(0);
+              }}
               variant="secondary"
-              style={styles.controlButton}
+              style={styles.mainControlButton}
             />
-            
             <GlassButton
               title={loading ? "..." : isPlaying ? "⏸️ Pause" : "▶️ Play"}
               onPress={handlePlayPause}
               variant="primary"
               style={styles.mainControlButton}
               loading={loading}
-            />
-            
-            <GlassButton
-              title="⏩ +10s"
-              onPress={() => handleSeek(Math.min(100, getProgress() + (10 / duration) * 100))}
-              variant="secondary"
-              style={styles.controlButton}
             />
           </View>
 
@@ -313,6 +318,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  progressDisabled: {
+    opacity: 0.5,
   },
   controlButton: {
     flex: 0.25,

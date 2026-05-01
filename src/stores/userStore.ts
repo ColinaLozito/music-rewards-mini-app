@@ -7,11 +7,13 @@ interface UserStore {
   // State
   totalPoints: number;
   completedChallenges: string[];
+  totalSecondsListened: number;
   
   // Actions
   addPoints: (points: number) => void;
   completeChallenge: (challengeId: string) => void;
   resetProgress: () => void;
+  updateListenedTime: (seconds: number) => void;
 }
 
 export const useUserStore = create<UserStore>()(
@@ -20,14 +22,15 @@ export const useUserStore = create<UserStore>()(
       // Initial state
       totalPoints: 0,
       completedChallenges: [],
-
+      totalSecondsListened: 0,
+      
       // Actions
       addPoints: (points: number) => {
         set((state) => ({
           totalPoints: state.totalPoints + points,
         }));
       },
-
+      
       completeChallenge: (challengeId: string) => {
         set((state) => ({
           completedChallenges: state.completedChallenges.includes(challengeId)
@@ -35,12 +38,19 @@ export const useUserStore = create<UserStore>()(
             : [...state.completedChallenges, challengeId],
         }));
       },
-
+      
       resetProgress: () => {
         set({
           totalPoints: 0,
           completedChallenges: [],
+          totalSecondsListened: 0,
         });
+      },
+
+      updateListenedTime: (seconds: number) => {
+        set((state) => ({
+          totalSecondsListened: state.totalSecondsListened + seconds,
+        }));
       },
     }),
     {
@@ -53,3 +63,4 @@ export const useUserStore = create<UserStore>()(
 // Selector functions
 export const selectTotalPoints = (state: UserStore) => state.totalPoints;
 export const selectCompletedChallenges = (state: UserStore) => state.completedChallenges;
+export const selectTotalSecondsListened = (state: UserStore) => state.totalSecondsListened;

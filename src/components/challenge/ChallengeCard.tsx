@@ -105,7 +105,6 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
         title={getButtonTitle()}
         onPress={() => onPlay(challenge)}
         variant={isCurrentTrack ? 'primary' : 'secondary'}
-        disabled={challenge.completed}
         style={styles.playButton}
       />
     </GlassCard>

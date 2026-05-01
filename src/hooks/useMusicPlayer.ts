@@ -52,12 +52,19 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
   useEffect(() => {
     if (!progress.position || !progress.duration || !currentTrack) return;
 
-    const now = Date.now();
-    if (now - lastSyncRef.current < 5000) return; // Throttle: sync every 5s
-    lastSyncRef.current = now;
-
     const progressPercentage = (progress.position / progress.duration) * 100;
-    updateProgress(currentTrack.id, progressPercentage);
+    
+    // Update progress in store
+    if (progressPercentage > (currentTrack.progress || 0)) {
+      updateProgress(currentTrack.id, progressPercentage);
+    }
+
+    // Check if track is completed (98% threshold for Challenge Integrity)
+    if (progressPercentage >= 98 && !currentTrack.completed) {
+      markChallengeComplete(currentTrack.id);
+      completeChallenge(currentTrack.id);
+      addPoints(currentTrack.points);
+    }
   }, [progress.position, progress.duration, currentTrack?.id]);
 
   // Handle track player events
