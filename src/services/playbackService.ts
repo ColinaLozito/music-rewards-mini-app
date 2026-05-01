@@ -28,7 +28,7 @@ export default async function playbackService() {
 
   // Handle playback queue ended
   TrackPlayer.addEventListener(Event.PlaybackQueueEnded, (event) => {
-    console.log('Playback queue ended:', event);
+    // Playback queue ended
   });
 
   // Handle playback errors

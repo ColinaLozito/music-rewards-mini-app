@@ -1,55 +1,33 @@
 // Audio service - TrackPlayer setup and configuration
 import TrackPlayer, { Capability, AppKilledPlaybackBehavior } from 'react-native-track-player';
 
-// TrackPlayer service setup - call this in your App.tsx or _layout.tsx
 export const setupTrackPlayer = async (): Promise<void> => {
   try {
-    // Check if player is already initialized
-    const isSetup = await TrackPlayer.isServiceRunning();
-    if (isSetup) {
-      return;
+    await TrackPlayer.setupPlayer({ waitForBuffer: true, maxCacheSize: 10240 });
+  } catch (error: any) {
+    // Swallow "already initialized" errors
+    const msg = String(error?.message || error);
+    if (msg.includes('already') && msg.includes('initialized')) {
+      // Player already exists, continue
+    } else {
+      throw error;
     }
-
-    // Setup the player with proper configuration
-    await TrackPlayer.setupPlayer({
-      waitForBuffer: true,
-      maxCacheSize: 1024 * 10, // 10MB
-    });
-
-    // Configure capabilities
-    await TrackPlayer.updateOptions({
-      // Configure which control center / notification controls are shown
-      capabilities: [
-        Capability.Play,
-        Capability.Pause,
-        Capability.SkipToNext,
-        Capability.SkipToPrevious,
-        Capability.SeekTo,
-      ],
-
-      // Capabilities that will show up when the notification is in the compact form on Android
-      compactCapabilities: [
-        Capability.Play,
-        Capability.Pause,
-      ],
-
-      // Configure behavior when app is killed
-      android: {
-        appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification,
-      },
-
-      // Configure notification
-      notificationCapabilities: [
-        Capability.Play,
-        Capability.Pause,
-      ],
-    });
-
-    console.log('TrackPlayer setup complete');
-  } catch (error) {
-    console.error('TrackPlayer setup error:', error);
-    throw error;
   }
+
+  // Always update options (idempotent)
+  await TrackPlayer.updateOptions({
+    capabilities: [
+      Capability.Play,
+      Capability.Pause,
+      Capability.Stop,
+      Capability.SkipToNext,
+      Capability.SkipToPrevious,
+      Capability.SeekTo,
+    ],
+    compactCapabilities: [Capability.Play, Capability.Pause],
+    android: { appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification },
+    notificationCapabilities: [Capability.Play, Capability.Pause],
+  });
 };
 
 // Reset player state

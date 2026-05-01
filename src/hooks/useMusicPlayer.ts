@@ -9,6 +9,7 @@ import TrackPlayer, {
 } from 'react-native-track-player';
 import { useMusicStore, selectCurrentTrack, selectIsPlaying } from '../stores/musicStore';
 import { useUserStore } from '../stores/userStore';
+import { setupTrackPlayer } from '../services/audioService';
 import type { MusicChallenge, UseMusicPlayerReturn } from '../types';
 
 export const useMusicPlayer = (): UseMusicPlayerReturn => {
@@ -74,6 +75,9 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Ensure player is initialized before any action
+      await setupTrackPlayer();
       
       // Reset and add new track
       await TrackPlayer.reset();
