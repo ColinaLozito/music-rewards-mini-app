@@ -8,7 +8,7 @@ import TrackPlayer, {
   useTrackPlayerEvents,
 } from 'react-native-track-player';
 import { useMusicStore, selectCurrentTrack, selectIsPlaying } from '../stores/musicStore';
-import { useUserStore } from '../stores/userStore';
+import { useUserStore, selectAwardedChallenges } from '../stores/userStore';
 import { setupTrackPlayer } from '../services/audioService';
 import type { MusicChallenge, UseMusicPlayerReturn } from '../types';
 
@@ -63,7 +63,11 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
     if (progressPercentage >= 98 && !currentTrack.completed) {
       markChallengeComplete(currentTrack.id);
       completeChallenge(currentTrack.id);
-      addPoints(currentTrack.points);
+      // Only award points if not already awarded for this challenge
+      if (!awarded[currentTrack.id]) {
+        addPoints(currentTrack.points);
+        recordAward(currentTrack.id, currentTrack.points);
+      }
     }
   }, [progress.position, progress.duration, currentTrack?.id]);
 
@@ -74,6 +78,10 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
       setLoading(false);
     }
   });
+
+  // Get awardedChallenges from userStore
+  const awarded = useUserStore(selectAwardedChallenges);
+  const recordAward = useUserStore((s) => s.recordAward);
 
   const play = useCallback(async (track: MusicChallenge) => {
     try {

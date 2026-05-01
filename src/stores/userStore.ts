@@ -8,12 +8,14 @@ interface UserStore {
   totalPoints: number;
   completedChallenges: string[];
   totalSecondsListened: number;
+  awardedChallenges: Record<string, number>; // challengeId -> pointsAwarded
   
   // Actions
   addPoints: (points: number) => void;
   completeChallenge: (challengeId: string) => void;
   resetProgress: () => void;
   updateListenedTime: (seconds: number) => void;
+  recordAward: (challengeId: string, points: number) => void;
 }
 
 export const useUserStore = create<UserStore>()(
@@ -23,6 +25,7 @@ export const useUserStore = create<UserStore>()(
       totalPoints: 0,
       completedChallenges: [],
       totalSecondsListened: 0,
+      awardedChallenges: {},
       
       // Actions
       addPoints: (points: number) => {
@@ -52,10 +55,22 @@ export const useUserStore = create<UserStore>()(
           totalSecondsListened: state.totalSecondsListened + seconds,
         }));
       },
+
+      recordAward: (challengeId: string, points: number) => {
+        set((state) => ({
+          awardedChallenges: { ...state.awardedChallenges, [challengeId]: points },
+        }));
+      },
     }),
     {
       name: 'user-store',
       storage: createJSONStorage(() => AsyncStorage),
+      // Only persist challenges and awarded points, not listening time
+      partialize: (state) => ({
+        totalPoints: state.totalPoints,
+        completedChallenges: state.completedChallenges,
+        awardedChallenges: state.awardedChallenges,
+      }),
     }
   )
 );
@@ -64,3 +79,4 @@ export const useUserStore = create<UserStore>()(
 export const selectTotalPoints = (state: UserStore) => state.totalPoints;
 export const selectCompletedChallenges = (state: UserStore) => state.completedChallenges;
 export const selectTotalSecondsListened = (state: UserStore) => state.totalSecondsListened;
+export const selectAwardedChallenges = (state: UserStore) => state.awardedChallenges;
