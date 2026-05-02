@@ -17,6 +17,7 @@ import React, { useCallback } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { ChallengeCard } from './ChallengeCard';
 import type { MusicChallenge } from '../../types';
+import { styles } from './ChallengeList.styles'
 
 const CHALLENGE_CARD_HEIGHT = 280;
 
@@ -75,12 +76,6 @@ export const ChallengeList = React.memo<ChallengeListProps>(({
       getItemLayout={getItemLayout}
     />
   );
-});
-
-const styles = StyleSheet.create({
-  listContainer: {
-    paddingBottom: 32,
-  },
 });
 
 ChallengeList.displayName = 'ChallengeList';

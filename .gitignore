@@ -149,7 +149,12 @@ tsconfig.tsbuildinfo
 
 expo-env.d.ts
 # @end expo-cli
+/ios
 
 .opencode/
 .yarn/
-/ios
+AGENTS.md
+OPENCODE.md
+LOG.md
+FIXES_PROGRESS.md
+FIX_LOG.md

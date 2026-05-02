@@ -1,6 +1,6 @@
 // Home screen - Challenge list (Expo Router)
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text } from 'react-native';
 import { router } from 'expo-router';
 import { ChallengeList } from '../../components/challenge/ChallengeList';
 import { useMusicPlayer } from '../../hooks/useMusicPlayer';
@@ -8,6 +8,7 @@ import { useMusicStore, selectChallenges, selectCurrentTrack, selectIsPlaying } 
 import { useUserStore, selectListenedTimeMap } from '../../stores/userStore';
 import { THEME } from '../../constants/theme';
 import type { MusicChallenge } from '../../types';
+import { styles } from './index.styles';
 
 export default function HomeScreen() {
   const challenges = useMusicStore(selectChallenges);
@@ -72,25 +73,3 @@ export default function HomeScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: THEME.colors.background,
-    paddingHorizontal: THEME.spacing.md,
-    paddingTop: THEME.spacing.lg,
-  },
-  header: {
-    fontSize: THEME.fonts.sizes.xxl,
-    fontWeight: 'bold',
-    color: THEME.colors.text.primary,
-    marginBottom: THEME.spacing.sm,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: THEME.fonts.sizes.sm,
-    color: THEME.colors.text.secondary,
-    textAlign: 'center',
-    marginBottom: THEME.spacing.lg,
-  },
-});
