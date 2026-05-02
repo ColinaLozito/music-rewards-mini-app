@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { useEffect, useState } from 'react';
 import TrackPlayer from 'react-native-track-player';
 import { setupTrackPlayer } from '../services/audioService';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
 export default function RootLayout() {
   const [playerReady, setPlayerReady] = useState(false);
@@ -10,7 +11,7 @@ export default function RootLayout() {
   useEffect(() => {
     // Register the playback service first
     TrackPlayer.registerPlaybackService(() => require('../services/playbackService'));
-    
+
     // Then initialize TrackPlayer when app starts
     setupTrackPlayer()
       .then(() => {
@@ -39,15 +40,17 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen 
-        name="(modals)" 
-        options={{ 
-          presentation: 'modal',
-          headerShown: false 
-        }} 
-      />
-    </Stack>
+    <ErrorBoundary>
+      <Stack>
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="(modals)"
+          options={{
+            presentation: 'modal',
+            headerShown: false
+          }}
+        />
+      </Stack>
+    </ErrorBoundary>
   );
 }

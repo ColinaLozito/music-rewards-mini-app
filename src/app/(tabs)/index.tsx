@@ -1,8 +1,8 @@
 // Home screen - Challenge list (Expo Router)
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, FlatList } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { router } from 'expo-router';
-import { ChallengeCard } from '../../components/challenge/ChallengeCard';
+import { ChallengeList } from '../../components/challenge/ChallengeList';
 import { useMusicPlayer } from '../../hooks/useMusicPlayer';
 import { useMusicStore, selectChallenges, selectCurrentTrack, selectIsPlaying } from '../../stores/musicStore';
 import { THEME } from '../../constants/theme';
@@ -41,27 +41,17 @@ export default function HomeScreen() {
     }
   };
 
-  const renderChallenge = ({ item }: { item: MusicChallenge }) => (
-    <ChallengeCard
-      challenge={item}
-      onPlay={handlePlayChallenge}
-      isCurrentTrack={currentTrack?.id === item.id}
-      isPlaying={isPlaying}
-    />
-  );
-
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Music Challenges</Text>
       <Text style={styles.subtitle}>
         Complete listening challenges to earn points and unlock achievements
       </Text>
-      <FlatList
-        data={challenges}
-        renderItem={renderChallenge}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContainer}
-        showsVerticalScrollIndicator={false}
+      <ChallengeList
+        challenges={challenges}
+        currentTrackId={currentTrack?.id}
+        isPlaying={isPlaying}
+        onPlayChallenge={handlePlayChallenge}
       />
     </View>
   );
@@ -86,8 +76,5 @@ const styles = StyleSheet.create({
     color: THEME.colors.text.secondary,
     textAlign: 'center',
     marginBottom: THEME.spacing.lg,
-  },
-  listContainer: {
-    paddingBottom: THEME.spacing.xl,
   },
 });

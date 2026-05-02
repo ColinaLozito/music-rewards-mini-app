@@ -9,6 +9,7 @@ import {
   Alert
 } from 'react-native';
 import { GlassCard, GlassButton } from '../../components/ui/GlassCard';
+import { PointsCounter } from '../../components/ui/PointsCounter';
 import { useMusicPlayer } from '../../hooks/useMusicPlayer';
 import { useMusicStore, selectCurrentTrack, selectIsPlaying, selectChallenges } from '../../stores/musicStore';
 import { useUserStore } from '../../stores/userStore';
@@ -88,9 +89,11 @@ export default function PlayerModal() {
   // Format time display - use dragged position if dragging
   const displayPosition = isDragging ? draggedPosition : currentPosition;
 
-  if (error) {
-    Alert.alert('Playback Error', error);
-  }
+  useEffect(() => {
+    if (error) {
+      Alert.alert('Playback Error', error);
+    }
+  }, [error]);
 
   if (!currentTrack) {
     return (
@@ -122,6 +125,14 @@ export default function PlayerModal() {
             <Text style={styles.pointsValue}>{displayChallenge.points}</Text>
           </View>
         </GlassCard>
+
+        {/* Points Counter */}
+        <PointsCounter
+          totalPoints={displayChallenge.points}
+          durationSeconds={displayChallenge.duration}
+          challengeId={displayChallenge.id}
+          isActive={isPlaying}
+        />
 
         {/* Progress Section */}
         <GlassCard style={styles.progressCard}>
