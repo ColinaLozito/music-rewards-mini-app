@@ -20,10 +20,13 @@ export function usePlayerModal() {
     resume,
     seekTo,
     loading,
+    setLoading,
+    loadingMessage,
     error
   } = useMusicPlayer();
   
   const completedChallenges = useUserStore((s) => s.completedChallenges);
+  const listenedTimeMap = useUserStore((s) => s.listenedTimeMap);
   const setCurrentPosition = useMusicStore((state) => state.setCurrentPosition);
   const challenges = useMusicStore(selectChallenges);
   
@@ -50,6 +53,13 @@ export function usePlayerModal() {
     if (!duration || duration === 0) return 0;
     const position = isDragging ? draggedPosition : currentPosition;
     return (position / duration) * PROGRESS_PERCENT;
+  }
+  
+  function getChallengeProgress(): number {
+    if (!displayChallenge || !duration || duration === 0) return 0;
+    if (isCompleted) return PROGRESS_PERCENT; // Already completed
+    const listened = listenedTimeMap[displayChallenge.id] || 0;
+    return Math.min(PROGRESS_PERCENT, (listened / duration) * PROGRESS_PERCENT);
   }
   
   function handleSeek(percentage: number): void {
@@ -79,8 +89,13 @@ export function usePlayerModal() {
   }
   
   function handleRestart(): void {
-    seekTo(0);
-    setCurrentPosition(0);
+    try {
+      setLoading(true);
+      seekTo(0);
+      setCurrentPosition(0);
+    } finally {
+      // loading reset in seekTo finally block
+    }
   }
   
   function onTouchStart(event: GestureResponderEvent): void {
@@ -106,7 +121,7 @@ export function usePlayerModal() {
     }
   }, [isDragging, currentPosition]);
   
-  // Error effect removed - handled by PlayerModal component via Alert
+  // Note: error handled by PlayerModal component via Alert (not in hook)
   
   const displayPosition = (isDragging ? draggedPosition : currentPosition) || 0;
   
@@ -124,7 +139,8 @@ export function usePlayerModal() {
     progressBarRef,
     
     // Computed (safe defaults)
-    progress: duration ? getProgress() : 0,
+    progress: duration ? getProgress() : 0, // Track time progress
+    challengeProgress: duration ? getChallengeProgress() : 0, // Challenge completion %
     formattedTime: formatTime(displayPosition),
     formattedDuration: formatTime(duration || 0),
     
@@ -137,5 +153,8 @@ export function usePlayerModal() {
     onTouchMove,
     onTouchEnd,
     setProgressBarWidth,
+    
+    // Loading
+    loadingMessage,
   };
 }

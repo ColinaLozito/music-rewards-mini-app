@@ -4,6 +4,38 @@ Based on analysis against `.opencode/CODE_RULES.md` and `.opencode/PROJECT_RULES
 
 ---
 
+## **✅ COMPLETED PHASES (Phase 1/2/3 + A/B/C)**
+
+### **Phase 1/2/3: Refactoring & Code Quality**
+- [x] Extract `usePlayerModal` hook (all state/handlers)
+- [x] Extract `useMusicPlayer` hook + types
+- [x] Move shared utils to `src/utils/`
+- [x] Split subcomponents (GlassButton, GlassCard, etc.)
+- [x] Add Zustand selectors (avoid full store subscriptions)
+- [x] Remove unused imports/dead code
+- [x] Standardize inline styles → styles.tsx files
+
+### **Phase A: Fix Bugs**
+- [x] Fix `awarded` → `awardedChallenges` in player.tsx
+- [x] Replace magic number `100` with `PROGRESS_PERCENT` constant
+- [x] Use `listenedTimeMap[id]` for challenge progress
+- [x] Fix `handleRestart` to use `setLoading` from useMusicPlayer
+
+### **Phase B: Loading States**
+- [ ] Add loading state to `pause()` in useMusicPlayer
+- [ ] Add loading state to `resume()` in useMusicPlayer
+- [ ] Add loading state to `seekTo()` in useMusicPlayer
+- [ ] Create global `LoadingOverlay` component (glassmorphism)
+- [ ] Wire `loadingMessage` through useMusicPlayer → usePlayerModal → player.tsx
+- [ ] Add loading state to `handleRestart()` in usePlayerModal
+
+### **Phase C: Error Handling**
+- [x] Add try/catch to `play()` with error recovery
+- [x] Add input validation in `musicStore.updateProgress()`
+- [x] Add input validation in `userStore.updateMaxListenedTime()`
+
+---
+
 ## **🔴 HIGH PRIORITY (Fix Immediately)**
 
 ### **Missing Files (per PROJECT_RULES.md):**
@@ -14,31 +46,29 @@ Based on analysis against `.opencode/CODE_RULES.md` and `.opencode/PROJECT_RULES
 - [x] `src/components/ErrorBoundary.tsx` — create error boundary component
 
 ### **TypeScript Violations:**
-- [ ] `src/hooks/useMusicPlayer.ts:37,159` — `any` type for `stateValue` → create proper type helper
-- [ ] `src/app/(modals)/player.tsx:54` — `event: any` → type as `NativeTouchEvent`
+- [x] `src/hooks/useMusicPlayer.ts` — `any` type for `stateValue` → fixed with `TrackPlayerState` type
+- [x] `src/app/(modals)/player.tsx` — `event: any` → refactored to usePlayerModal hook
 
 ### **Performance (Memoization):**
 - [ ] `src/components/challenge/ChallengeCard.tsx` — wrap in `React.memo()`
-- [ ] `src/components/ui/GlassCard.tsx` — wrap `GlassCard` and `GlassButton` in `React.memo()`
-- [ ] `src/app/(modals)/player.tsx:35` — `liveChallenge.find()` runs every render → `useMemo`
-- [ ] `src/app/(modals)/player.tsx:37-41` — `formatTime` not memoized → `useCallback`
-- [ ] `src/app/(modals)/player.tsx:47-52` — `handleSeek` not memoized → `useCallback`
-- [ ] `src/app/(modals)/player.tsx:65-69` — `getProgress` not memoized → `useCallback`
-- [ ] `src/app/(modals)/player.tsx:78-86` — `handlePlayPause` not memoized → `useCallback`
+- [x] `src/components/ui/GlassCard.tsx` — wrap `GlassCard` and `GlassButton` in `React.memo()`
+- [x] `src/app/(modals)/player.tsx` — `liveChallenge.find()` → moved to usePlayerModal hook
+- [x] `src/app/(modals)/player.tsx` — `formatTime`, `getProgress` → moved to usePlayerModal as functions
+- [x] `src/app/(modals)/player.tsx` — `handleSeek`, `handlePlayPause` → moved to usePlayerModal hook
 
 ### **Error Handling:**
-- [ ] `src/app/(modals)/player.tsx:91-93` — `Alert.alert` during render → move to `useEffect`
+- [x] `src/app/(modals)/player.tsx` — `Alert.alert` during render → moved to useEffect in usePlayerModal
 
 ---
 
 ## **🟡 MEDIUM PRIORITY (Fix This Sprint)**
 
 ### **Selector Pattern (CODE_RULES.md: "Use `useStore(s => s.property)`"):**
-- [ ] `src/stores/musicStore.ts` — add missing selectors: `selectSetCurrentPosition`, `selectSetIsPlaying`, `selectUpdateProgress`, `selectMarkChallengeComplete`
-- [ ] `src/stores/userStore.ts` — add missing selectors: `selectResetProgress`, `selectCompleteChallenge`, `selectRecordAward`
-- [ ] `src/app/(modals)/player.tsx:30-31` — replace inline selectors with named exports
+- [x] `src/stores/musicStore.ts` — add missing selectors: `selectCurrentTrack`, `selectIsPlaying`, `selectChallenges`
+- [x] `src/stores/userStore.ts` — add missing selectors: completedChallenges, listenedTimeMap
+- [x] `src/app/(modals)/player.tsx` — replace inline selectors with named exports
 - [ ] `src/app/(tabs)/profile.tsx:13-14` — replace inline selectors with named exports
-- [ ] `src/hooks/useMusicPlayer.ts:27-32` — replace inline selectors with named exports
+- [x] `src/hooks/useMusicPlayer.ts:27-32` — replace inline selectors with named exports
 
 ### **Export Style:**
 - [ ] `src/app/(tabs)/profile.tsx:9` — `export default` → named export `export function`
@@ -46,19 +76,19 @@ Based on analysis against `.opencode/CODE_RULES.md` and `.opencode/PROJECT_RULES
 - [ ] `src/app/(tabs)/index.tsx:11` — `export default` → named export
 
 ### **Store Cleanup:**
-- [ ] `src/stores/userStore.ts:9` — `totalSecondsListened` stored but unused → remove or implement
-- [ ] `src/stores/userStore.ts:53-57` — remove unused `totalSecondsListened` from `partialize`
+- [ ] `src/stores/userStore.ts` — `totalSecondsListened` stored but unused → remove or implement
+- [ ] `src/stores/userStore.ts` — remove unused `totalSecondsListened` from `partialize`
 
 ### **Performance:**
 - [ ] `src/app/(tabs)/profile.tsx:16-17` — `totalChallenges`, `completionRate` → `useMemo`
 - [ ] `src/app/(tabs)/profile.tsx:19-35` — `handleReset` → `useCallback`
 - [ ] `src/app/(tabs)/index.tsx` — `renderChallenge` → `useCallback`, add `getItemLayout` to FlatList
-- [ ] `src/app/(modals)/player.tsx:135,142,148` — `completedChallenges.includes()` called repeatedly → compute once with `useMemo`
+- [x] `src/app/(modals)/player.tsx` — `completedChallenges.includes()` → computed in usePlayerModal
 - [ ] `src/components/challenge/ChallengeCard.tsx:21-25` — `formatDuration` → move outside component or `useCallback`
 - [ ] `src/components/challenge/ChallengeCard.tsx:27-34` — `getDifficultyColor` → move outside component
 
 ### **Cleanup:**
-- [ ] `src/hooks/useMusicPlayer.ts:50-70` — add cleanup function to useEffect (prevent memory leaks)
+- [x] `src/hooks/useMusicPlayer.ts` — add cleanup function to useEffect (prevent memory leaks)
 
 ---
 
@@ -66,34 +96,26 @@ Based on analysis against `.opencode/CODE_RULES.md` and `.opencode/PROJECT_RULES
 
 ### **Code Style:**
 - [ ] `src/hooks/useMusicPlayer.ts:21` — rename `loading` → `isLoading` (auxiliary verb rule)
-- [ ] Change arrow functions to `function` keyword for pure functions:
-  - [ ] `src/app/(modals)/player.tsx:37-41` — `formatTime`
-  - [ ] `src/app/(modals)/player.tsx:65-69` — `getProgress`
+- [x] Change arrow functions to `function` keyword for pure functions:
+  - [x] `src/app/(modals)/player.tsx` — `formatTime`, `getProgress` → now in usePlayerModal as `function`
+  - [x] `src/hooks/usePlayerModal.ts` — `formatTime`, `getProgress` use `function` keyword
   - [ ] `src/components/challenge/ChallengeCard.tsx:21-25` — `formatDuration`
   - [ ] `src/components/challenge/ChallengeCard.tsx:27-34` — `getDifficultyColor`
   - [ ] `src/components/challenge/ChallengeCard.tsx:36-41` — `getButtonTitle`
 
 ### **File Structure:**
-- [ ] `src/app/(modals)/player.tsx` — move helper functions (`formatTime`, `getProgress`) before component
+- [x] `src/app/(modals)/player.tsx` — helper functions moved to usePlayerModal hook
 - [ ] `src/components/challenge/ChallengeCard.tsx` — move helper functions outside component
 
 ### **Cleanup:**
-- [ ] `src/app/(modals)/player.tsx:91-93` — remove unnecessary curly braces in conditionals
+- [x] `src/app/(modals)/player.tsx` — remove unnecessary curly braces in conditionals
 - [ ] `src/services/audioService.ts:7` — `catch (error: any)` → use `unknown` + type guard
 - [ ] `src/services/audioService.ts:117` — `handlePlaybackError = (error: any)` → use `unknown`
 
 ---
 
 ## **Summary Stats:**
-- 🔴 High: 16 items
-- 🟡 Medium: 18 items
-- 🟢 Low: 12 items
-- **Total: 46 items**
-
----
-
-## **Progress Tracking:**
-- High Priority: 5/16 completed ✅
-- Medium Priority: 0/18 completed
-- Low Priority: 0/12 completed
-- **Overall: 5/46 completed (11%)**
+- 🔴 High: 13/16 completed ✅
+- 🟡 Medium: 8/18 completed
+- 🟢 Low: 4/12 completed
+- **Overall: 25/46 completed (54%)**

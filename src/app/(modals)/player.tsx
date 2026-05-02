@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { GlassButton } from '../../components/ui/GlassButton';
+import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { PointsCounter } from '../../components/ui/PointsCounter';
 import { usePlayerModal } from '../../hooks/usePlayerModal';
 import { THEME } from '../../constants/theme';
@@ -26,6 +27,7 @@ export default function PlayerModal() {
     progressBarWidth,
     progressBarRef,
     progress,
+    challengeProgress,
     formattedTime,
     formattedDuration,
     handleDrag,
@@ -81,6 +83,8 @@ export default function PlayerModal() {
 
   return (
     <SafeAreaView style={styles.container}>
+      <LoadingOverlay visible={loading} message="Loading..." />
+      
       <View style={styles.content}>
         {/* Track Info */}
         <GlassCard style={styles.trackInfoCard}>
@@ -101,7 +105,7 @@ export default function PlayerModal() {
               {displayChallenge.completed ? '✅ Completed' : '🎧 In Progress'}
             </Text>
             <Text style={styles.challengeProgress}>
-              {Math.round(displayChallenge.progress)}% of challenge complete
+              {Math.round(challengeProgress)}% of challenge complete
             </Text>
           </View>
         </GlassCard>

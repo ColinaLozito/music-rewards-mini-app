@@ -12,6 +12,8 @@ import { useUserStore, selectListenedTimeMap, selectCompletedChallenges, selectA
 import { setupTrackPlayer } from '../services/audioService';
 import type { MusicChallenge, UseMusicPlayerReturn } from '../types';
 
+const PROGRESS_PERCENT = 100;
+
 export const useMusicPlayer = (): UseMusicPlayerReturn => {
   // TrackPlayer hooks
   const playbackState = usePlaybackState();
@@ -19,6 +21,7 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
 
   // Local state
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('Loading...');
   const [error, setError] = useState<string | null>(null);
 
   // Zustand store selectors
@@ -63,7 +66,7 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
       markChallengeComplete(currentTrack.id);
       completeChallenge(currentTrack.id);
       // Only award points if not already awarded for this challenge
-      if (!awarded[currentTrack.id]) {
+      if (!awardedChallenges[currentTrack.id]) {
         recordAward(currentTrack.id, currentTrack.points);
       }
     }
@@ -77,8 +80,8 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
     }
   });
 
-  // Get awardedChallenges from userStore
-  const awarded = useUserStore(selectAwardedChallenges);
+      // Get awardedChallenges from userStore
+  const awardedChallenges = useUserStore(selectAwardedChallenges);
   const recordAward = useUserStore((s) => s.recordAward);
 
   const play = useCallback(async (track: MusicChallenge) => {
@@ -91,8 +94,8 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
         try {
           const { position, duration } = await TrackPlayer.getProgress();
           if (position > 0 && duration > 0) {
-            const progressPercentage = (position / duration) * 100;
-            updateProgress(currentTrack.id, Math.min(progressPercentage, 100));
+            const progressPercentage = (position / duration) * PROGRESS_PERCENT;
+            updateProgress(currentTrack.id, Math.min(progressPercentage, PROGRESS_PERCENT));
             // Save to listenedTimeMap (HWM) via userStore
             useUserStore.getState().updateMaxListenedTime(currentTrack.id, position);
           }
@@ -102,6 +105,7 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
       }
 
       // Ensure player is initialized before any action
+      setLoadingMessage('Loading track...');
       await setupTrackPlayer();
 
       // Reset and add new track
@@ -115,6 +119,7 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
       });
 
       // Start playback
+      setLoadingMessage('Starting playback...');
       await TrackPlayer.play();
 
       // Case B (In Progress) & Case C (Completed)
@@ -123,11 +128,13 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
 
       if (completedChallenges.includes(track.id)) {
         // Case C: Completed → start from 0
+        setLoadingMessage('Restarting challenge...');
         await TrackPlayer.seekTo(0);
       } else {
         // Case B: In Progress → seek to lastPosition (HWM)
         const lastPosition = listenedTimeMap[track.id] || 0;
         if (lastPosition > 0) {
+          setLoadingMessage('Resuming challenge...');
           await TrackPlayer.seekTo(lastPosition);
         }
       }
@@ -137,6 +144,12 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
       const errorMessage = err instanceof Error ? err.message : 'Playback failed';
       setError(errorMessage);
       console.error('TrackPlayer error:', err);
+      // Reset player state on error to prevent inconsistent state
+      try {
+        await TrackPlayer.reset();
+      } catch (resetErr) {
+        console.error('Failed to reset player after error:', resetErr);
+      }
     } finally {
       setLoading(false);
     }
@@ -144,25 +157,34 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
 
   const pause = useCallback(async () => {
     try {
+      setLoading(true);
       await TrackPlayer.pause();
     } catch (err) {
       console.error('Pause error:', err);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   const seekTo = useCallback(async (seconds: number) => {
     try {
+      setLoading(true);
       await TrackPlayer.seekTo(seconds);
     } catch (err) {
       console.error('Seek error:', err);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   const resume = useCallback(async () => {
     try {
+      setLoading(true);
       await TrackPlayer.play();
     } catch (err) {
       console.error('Resume error:', err);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
@@ -172,16 +194,18 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
     stateValue = (playbackState as any).state;
   }
 
-  return {
-    isPlaying: stateValue === State.Playing,
-    currentTrack,
-    currentPosition: progress.position,
-    duration: progress.duration,
-    play,
-    pause,
-    seekTo,
-    resume,
-    loading,
-    error,
-  };
+    return {
+      isPlaying: stateValue === State.Playing,
+      currentTrack,
+      currentPosition: progress.position,
+      duration: progress.duration,
+      play,
+      pause,
+      seekTo,
+      resume,
+      loading,
+      setLoading,
+      loadingMessage,
+      error,
+    };
 };

@@ -31,6 +31,8 @@ export interface UseMusicPlayerReturn {
   resume: () => void;
   seekTo: (seconds: number) => void;
   loading: boolean;
+  setLoading: (value: boolean) => void;
+  loadingMessage: string;
   error: string | null;
 }
 
