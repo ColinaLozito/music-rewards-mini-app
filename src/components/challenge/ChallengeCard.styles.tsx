@@ -30,16 +30,6 @@ export const styles = StyleSheet.create({
     fontSize: THEME.fonts.sizes.md,
     color: THEME.colors.text.secondary,
   },
-  difficultyBadge: {
-    paddingHorizontal: THEME.spacing.sm,
-    paddingVertical: THEME.spacing.xs,
-    borderRadius: THEME.borderRadius.sm,
-  },
-  difficultyText: {
-    fontSize: THEME.fonts.sizes.xs,
-    fontWeight: 'bold',
-    color: THEME.colors.background,
-  },
   description: {
     fontSize: THEME.fonts.sizes.sm,
     color: THEME.colors.text.tertiary,

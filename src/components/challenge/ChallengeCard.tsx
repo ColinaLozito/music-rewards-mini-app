@@ -1,10 +1,14 @@
 // ChallengeCard component - Individual challenge display
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { GlassCard, GlassButton } from '../ui/GlassCard';
+import { GlassCard } from '../ui/GlassCard';
+import { GlassButton } from '../ui/GlassButton';
+import { DifficultyBadge } from './DifficultyBadge';
 import { THEME } from '../../constants/theme';
 import type { MusicChallenge } from '../../types';
 import { styles } from './ChallengeCard.styles'
+
+const SECONDS_PER_MINUTE = 60;
 
 interface ChallengeCardProps {
   challenge: MusicChallenge;
@@ -15,6 +19,20 @@ interface ChallengeCardProps {
   isPlaying?: boolean;
 }
 
+// Pure functions (outside component per CODE_RULES.md)
+function formatDuration(seconds: number): string {
+  const minutes = Math.floor(seconds / SECONDS_PER_MINUTE);
+  const remainingSeconds = seconds % SECONDS_PER_MINUTE;
+  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+}
+
+function getButtonTitle(challenge: MusicChallenge, isCurrentTrack: boolean, isPlaying: boolean): string {
+  if (challenge.completed) return 'Play Again';
+  if (isCurrentTrack && isPlaying) return 'Open Player';
+  if (isCurrentTrack && !isPlaying) return 'Resume';
+  return 'Play Challenge';
+}
+
 export const ChallengeCard = React.memo<ChallengeCardProps>(({
   challenge,
   earnedPoints,
@@ -23,35 +41,32 @@ export const ChallengeCard = React.memo<ChallengeCardProps>(({
   isCurrentTrack = false,
   isPlaying = false,
 }) => {
-  function formatDuration(seconds: number): string {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  }
+  const buttonTitle = getButtonTitle(challenge, isCurrentTrack, isPlaying);
 
-  function getDifficultyColor(difficulty: string) {
-    switch (difficulty) {
-      case 'easy': return THEME.colors.secondary;
-      case 'medium': return THEME.colors.accent;
-      case 'hard': return THEME.colors.primary;
-      default: return THEME.colors.text.secondary;
+  const handlePlay = React.useCallback(() => {
+    onPlay(challenge);
+  }, [onPlay, challenge]);
+
+  const cardStyle = React.useMemo(() => {
+    if (isCurrentTrack) {
+      return { ...styles.card, ...styles.currentTrackCard };
     }
-  }
+    return styles.card;
+  }, [isCurrentTrack]);
 
-  function getButtonTitle() {
-    if (challenge.completed) return 'Play Again';
-    if (isCurrentTrack && isPlaying) return 'Open Player';
-    if (isCurrentTrack && !isPlaying) return 'Resume';
-    return 'Play Challenge';
-  }
-  const buttonTitle = getButtonTitle();
+  const pointsStyle = React.useMemo(() => [
+    styles.infoValue,
+    { color: THEME.colors.accent }
+  ], []);
+
+  const progressFillStyle = React.useMemo(() => ({
+    ...styles.progressFill,
+    width: `${progressPercentage}%` as const
+  }), [progressPercentage]);
 
   return (
     <GlassCard
-      style={StyleSheet.flatten([
-        styles.card,
-        isCurrentTrack && styles.currentTrackCard
-      ])}
+      style={cardStyle}
       gradientColors={
         isCurrentTrack
           ? THEME.glass.gradientColors.primary
@@ -63,14 +78,7 @@ export const ChallengeCard = React.memo<ChallengeCardProps>(({
           <Text style={styles.title}>{challenge.title}</Text>
           <Text style={styles.artist}>{challenge.artist}</Text>
         </View>
-        <View style={StyleSheet.flatten([
-          styles.difficultyBadge,
-          { backgroundColor: getDifficultyColor(challenge.difficulty) }
-        ])}>
-          <Text style={styles.difficultyText}>
-            {challenge.difficulty.toUpperCase()}
-          </Text>
-        </View>
+        <DifficultyBadge difficulty={challenge.difficulty} />
       </View>
 
       <Text style={styles.description} numberOfLines={2}>
@@ -84,7 +92,7 @@ export const ChallengeCard = React.memo<ChallengeCardProps>(({
         </View>
         <View style={styles.infoItem}>
           <Text style={styles.infoLabel}>Points</Text>
-          <Text style={[styles.infoValue, { color: THEME.colors.accent }]}>
+          <Text style={pointsStyle}>
             {earnedPoints} / {challenge.points}
           </Text>
         </View>
@@ -97,19 +105,14 @@ export const ChallengeCard = React.memo<ChallengeCardProps>(({
       {progressPercentage > 0 && (
         <View style={styles.progressContainer}>
           <View style={styles.progressTrack}>
-            <View
-              style={StyleSheet.flatten([
-                styles.progressFill,
-                { width: `${progressPercentage}%` }
-              ])}
-            />
+            <View style={progressFillStyle} />
           </View>
         </View>
       )}
 
       <GlassButton
-        title={getButtonTitle()}
-        onPress={() => onPlay(challenge)}
+        title={buttonTitle}
+        onPress={handlePlay}
         variant={isCurrentTrack ? 'primary' : 'secondary'}
         style={styles.playButton}
       />

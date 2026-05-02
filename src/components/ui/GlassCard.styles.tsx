@@ -6,20 +6,15 @@ export const styles = StyleSheet.create({
   contentContainer: {
     padding: THEME.spacing.md,
   },
-  button: {
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'center',
+  container: {
+    overflow: 'hidden',
   },
-  buttonContent: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+  absoluteFill: {
+    ...StyleSheet.absoluteFillObject,
   },
-  buttonText: {
-    color: THEME.colors.text.primary,
-    fontSize: THEME.fonts.sizes.md,
-    fontWeight: '600',
+  borderOverlay: {
+    borderRadius: THEME.borderRadius.md,
+    borderWidth: 1,
+    borderColor: THEME.colors.border,
   },
 });
