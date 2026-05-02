@@ -18,30 +18,30 @@ export default function HomeScreen() {
   const { play, resume } = useMusicPlayer();
 
   const handlePlayChallenge = async (challenge: MusicChallenge) => {
-    // Completed challenge → always restart + play (ignore current state)
-    if (challenge.completed) {
-      try {
-        await play(challenge);
-        router.push('/(modals)/player');
-      } catch (error) {
-        console.error('Failed to play challenge:', error);
-      }
-      return;
-    }
-
-    // Same track playing → just open modal (don't restart)
+    // Same track playing → keep playing (don't restart)
     if (currentTrack?.id === challenge.id && isPlaying) {
       router.push('/(modals)/player');
       return;
     }
 
-    // Same track paused → resume playback
+    // Same track paused → resume
     if (currentTrack?.id === challenge.id && !isPlaying) {
       try {
         await resume();
         router.push('/(modals)/player');
       } catch (error) {
         console.error('Failed to resume challenge:', error);
+      }
+      return;
+    }
+
+    // Completed challenge (different track) → restart + play
+    if (challenge.completed) {
+      try {
+        await play(challenge);
+        router.push('/(modals)/player');
+      } catch (error) {
+        console.error('Failed to play challenge:', error);
       }
       return;
     }

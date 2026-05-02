@@ -8,7 +8,7 @@ import TrackPlayer, {
   useTrackPlayerEvents,
 } from 'react-native-track-player';
 import { useMusicStore, selectCurrentTrack, selectIsPlaying } from '../stores/musicStore';
-import { useUserStore, selectAwardedChallenges } from '../stores/userStore';
+import { useUserStore, selectListenedTimeMap, selectCompletedChallenges, selectAwardedChallenges } from '../stores/userStore';
 import { setupTrackPlayer } from '../services/audioService';
 import type { MusicChallenge, UseMusicPlayerReturn } from '../types';
 
@@ -86,13 +86,15 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
       setLoading(true);
       setError(null);
 
-      // Save current track's progress before switching
+      // Save current track's progress to listenedTimeMap (HWM) before switching
       if (currentTrack && currentTrack.id && currentTrack.id !== track.id) {
         try {
           const { position, duration } = await TrackPlayer.getProgress();
           if (position > 0 && duration > 0) {
             const progressPercentage = (position / duration) * 100;
             updateProgress(currentTrack.id, Math.min(progressPercentage, 100));
+            // Save to listenedTimeMap (HWM) via userStore
+            useUserStore.getState().updateMaxListenedTime(currentTrack.id, position);
           }
         } catch {
           // Ignore errors getting position/duration
@@ -115,10 +117,19 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
       // Start playback
       await TrackPlayer.play();
 
-      // If track has existing progress, seek to saved position
-      if (track.progress > 0 && track.progress < 100) {
-        const savedPosition = (track.progress / 100) * track.duration;
-        await TrackPlayer.seekTo(savedPosition);
+      // Case B (In Progress) & Case C (Completed)
+      const listenedTimeMap = useUserStore.getState().listenedTimeMap;
+      const completedChallenges = useUserStore.getState().completedChallenges;
+
+      if (completedChallenges.includes(track.id)) {
+        // Case C: Completed → start from 0
+        await TrackPlayer.seekTo(0);
+      } else {
+        // Case B: In Progress → seek to lastPosition (HWM)
+        const lastPosition = listenedTimeMap[track.id] || 0;
+        if (lastPosition > 0) {
+          await TrackPlayer.seekTo(lastPosition);
+        }
       }
 
       setCurrentTrack(track);

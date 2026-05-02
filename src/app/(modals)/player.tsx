@@ -111,6 +111,9 @@ export default function PlayerModal() {
   // Use liveChallenge for display, fallback to currentTrack
   const displayChallenge = liveChallenge || currentTrack;
 
+  // Helper for completion status (use displayChallenge.id, not currentTrack)
+  const isCompleted = completedChallenges.includes(displayChallenge?.id || '');
+
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
@@ -162,20 +165,20 @@ export default function PlayerModal() {
             ref={progressBarRef}
             style={[
               styles.progressTrack,
-              !completedChallenges.includes(currentTrack?.id || '') && styles.progressDisabled
+              !isCompleted && styles.progressDisabled
             ]}
             onLayout={(event) => {
               setProgressBarWidth(event.nativeEvent.layout.width);
             }}
             onTouchStart={(event) => {
               // Only allow drag if challenge was already completed
-              if (completedChallenges.includes(currentTrack?.id || '')) {
+              if (isCompleted) {
                 setIsDragging(true);
                 handleDrag(event);
               }
             }}
             onTouchMove={(event) => {
-              if (isDragging && completedChallenges.includes(currentTrack?.id || '')) {
+              if (isDragging && isCompleted) {
                 handleDrag(event);
               }
             }}

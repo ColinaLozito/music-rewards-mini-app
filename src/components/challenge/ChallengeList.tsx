@@ -29,18 +29,6 @@ interface ChallengeListProps {
   onPlayChallenge: (challenge: MusicChallenge) => void;
 }
 
-function calculateEarnedPoints(
-  challenge: MusicChallenge,
-  listenedTimeMap: Record<string, number>,
-  awardedChallenges: Record<string, number>
-): number {
-  const awarded = awardedChallenges[challenge.id];
-  if (awarded !== undefined) return awarded;
-  const listened = listenedTimeMap[challenge.id] || 0;
-  if (challenge.duration === 0) return 0;
-  return Math.floor((listened / challenge.duration) * challenge.points);
-}
-
 export const ChallengeList = React.memo<ChallengeListProps>(({
   challenges,
   listenedTimeMap,
@@ -49,12 +37,21 @@ export const ChallengeList = React.memo<ChallengeListProps>(({
   isPlaying,
   onPlayChallenge,
 }) => {
-  const renderChallenge = useCallback(({ item }: { item: MusicChallenge }) => {
-    const earnedPoints = calculateEarnedPoints(item, listenedTimeMap, awardedChallenges);
+ const renderChallenge = useCallback(({ item }: { item: MusicChallenge }) => {
+    // Use awarded points if challenge completed (full points), else calculate from listenedTimeMap
+    const awarded = awardedChallenges[item.id];
+    const earnedPoints = awarded !== undefined
+      ? awarded
+      : Math.floor(((listenedTimeMap[item.id] || 0) / item.duration) * item.points);
+    // Progress from listenedTimeMap (actual playback, not challenge.progress)
+    const progressPercentage = item.duration > 0
+      ? (listenedTimeMap[item.id] || 0) / item.duration * 100
+      : 0;
     return (
       <ChallengeCard
         challenge={item}
         earnedPoints={earnedPoints}
+        progressPercentage={progressPercentage}
         onPlay={onPlayChallenge}
         isCurrentTrack={currentTrackId === item.id}
         isPlaying={isPlaying}

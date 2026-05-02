@@ -8,6 +8,7 @@ import type { MusicChallenge } from '../../types';
 interface ChallengeCardProps {
   challenge: MusicChallenge;
   earnedPoints: number;
+  progressPercentage: number; // From listenedTimeMap (actual playback)
   onPlay: (challenge: MusicChallenge) => void;
   isCurrentTrack?: boolean;
   isPlaying?: boolean;
@@ -16,6 +17,7 @@ interface ChallengeCardProps {
 export const ChallengeCard = React.memo<ChallengeCardProps>(({
   challenge,
   earnedPoints,
+  progressPercentage,
   onPlay,
   isCurrentTrack = false,
   isPlaying = false,
@@ -87,17 +89,17 @@ export const ChallengeCard = React.memo<ChallengeCardProps>(({
         </View>
         <View style={styles.infoItem}>
           <Text style={styles.infoLabel}>Progress</Text>
-          <Text style={styles.infoValue}>{Math.round(challenge.progress)}%</Text>
+          <Text style={styles.infoValue}>{Math.round(progressPercentage)}%</Text>
         </View>
       </View>
 
-      {challenge.progress > 0 && (
+      {progressPercentage > 0 && (
         <View style={styles.progressContainer}>
           <View style={styles.progressTrack}>
             <View
               style={StyleSheet.flatten([
                 styles.progressFill,
-                { width: `${challenge.progress}%` }
+                { width: `${progressPercentage}%` }
               ])}
             />
           </View>
