@@ -111,6 +111,14 @@ export default function PlayerModal() {
   // Use liveChallenge for display, fallback to currentTrack
   const displayChallenge = liveChallenge || currentTrack;
 
+  if (error) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
@@ -126,15 +134,26 @@ export default function PlayerModal() {
           </View>
         </GlassCard>
 
-        {/* Points Counter */}
-        <PointsCounter
-          totalPoints={displayChallenge.points}
-          durationSeconds={displayChallenge.duration}
-          challengeId={displayChallenge.id}
-          isActive={isPlaying}
-        />
+        {/* Challenge Progress */}
+        <GlassCard style={styles.challengeCard}>
+          <View style={styles.challengeInfo}>
+            <Text style={[
+              styles.challengeStatus,
+              { color: displayChallenge.completed ? THEME.colors.secondary : THEME.colors.accent }
+            ]}>
+              {displayChallenge.completed ? '✅ Completed' : '🎧 In Progress'}
+            </Text>
+            <Text style={styles.challengeProgress}>
+              {Math.round(displayChallenge.progress)}% of challenge complete
+            </Text>
+             {/* Progress Percentage */}
+        {/*   <Text style={styles.progressPercentage}>
+            {Math.round(getProgress())}% Complete
+          </Text> */}
+          </View>
+        </GlassCard>
 
-        {/* Progress Section */}
+        {/* Player Section */}
         <GlassCard style={styles.progressCard}>
           <Text style={styles.progressLabel}>Listening Progress</Text>
           
@@ -180,14 +199,7 @@ export default function PlayerModal() {
             <Text style={styles.timeText}>{formatTime(duration)}</Text>
           </View>
 
-          {/* Progress Percentage */}
-          <Text style={styles.progressPercentage}>
-            {Math.round(getProgress())}% Complete
-          </Text>
-        </GlassCard>
-
-        {/* Controls */}
-        <GlassCard style={styles.controlsCard}>
+          {/* Controls */}
           <View style={styles.controlsRow}>
             <GlassButton
               title="🔄 Restart Track"
@@ -206,27 +218,15 @@ export default function PlayerModal() {
               loading={loading}
             />
           </View>
-
-          {error && (
-            <Text style={styles.errorText}>{error}</Text>
-          )}
         </GlassCard>
 
-        {/* Challenge Progress */}
-        <GlassCard style={styles.challengeCard}>
-          <Text style={styles.challengeLabel}>Challenge Status</Text>
-          <View style={styles.challengeInfo}>
-            <Text style={[
-              styles.challengeStatus,
-              { color: displayChallenge.completed ? THEME.colors.secondary : THEME.colors.accent }
-            ]}>
-              {displayChallenge.completed ? '✅ Completed' : '🎧 In Progress'}
-            </Text>
-            <Text style={styles.challengeProgress}>
-              {Math.round(displayChallenge.progress)}% of challenge complete
-            </Text>
-          </View>
-        </GlassCard>
+        {/* Points Counter */}
+         <PointsCounter
+          totalPoints={displayChallenge.points}
+          durationSeconds={displayChallenge.duration}
+          challengeId={displayChallenge.id}
+          isActive={isPlaying}
+        />
       </View>
     </SafeAreaView>
   );
@@ -336,6 +336,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: 16
   },
   progressDisabled: {
     opacity: 0.5,

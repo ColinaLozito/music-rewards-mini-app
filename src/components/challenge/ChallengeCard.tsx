@@ -7,38 +7,41 @@ import type { MusicChallenge } from '../../types';
 
 interface ChallengeCardProps {
   challenge: MusicChallenge;
+  earnedPoints: number;
   onPlay: (challenge: MusicChallenge) => void;
   isCurrentTrack?: boolean;
   isPlaying?: boolean;
 }
 
-export const ChallengeCard: React.FC<ChallengeCardProps> = ({
+export const ChallengeCard = React.memo<ChallengeCardProps>(({
   challenge,
+  earnedPoints,
   onPlay,
   isCurrentTrack = false,
   isPlaying = false,
 }) => {
-  const formatDuration = (seconds: number): string => {
+  function formatDuration(seconds: number): string {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
+  }
 
-  const getDifficultyColor = (difficulty: string) => {
+  function getDifficultyColor(difficulty: string) {
     switch (difficulty) {
       case 'easy': return THEME.colors.secondary;
       case 'medium': return THEME.colors.accent;
       case 'hard': return THEME.colors.primary;
       default: return THEME.colors.text.secondary;
     }
-  };
+  }
 
-  const getButtonTitle = () => {
-    if (challenge.completed) return 'Completed ✓';
-    if (isCurrentTrack && isPlaying) return 'Playing...';
+  function getButtonTitle() {
+    if (challenge.completed) return 'Play Again';
+    if (isCurrentTrack && isPlaying) return 'Open Player';
     if (isCurrentTrack && !isPlaying) return 'Resume';
     return 'Play Challenge';
-  };
+  }
+  const buttonTitle = getButtonTitle();
 
   return (
     <GlassCard
@@ -78,8 +81,8 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
         </View>
         <View style={styles.infoItem}>
           <Text style={styles.infoLabel}>Points</Text>
-          <Text style={[styles.infoValue, { color: THEME.colors.accent }]}> 
-            {challenge.points}
+          <Text style={[styles.infoValue, { color: THEME.colors.accent }]}>
+            {earnedPoints} / {challenge.points}
           </Text>
         </View>
         <View style={styles.infoItem}>
@@ -109,7 +112,9 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
       />
     </GlassCard>
   );
-};
+});
+
+ChallengeCard.displayName = 'ChallengeCard';
 
 const styles = StyleSheet.create({
   card: {

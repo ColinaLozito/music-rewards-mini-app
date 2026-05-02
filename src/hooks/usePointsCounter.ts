@@ -1,33 +1,24 @@
 // usePointsCounter hook - Calculates points earned based on audio playback progress
 //
-// Purpose: Animates points counter in real-time as the user listens to music.
-// Derives earned points from playback position (0-100% → 0-totalPoints).
-// Uses react-native-track-player's useProgress() hook for live position updates.
-//
-// Returns: UsePointsCounterReturn interface (see types/index.ts)
-// - currentPoints: Points earned so far (animated)
-// - pointsEarned: Final points when challenge completes
-// - progress: Playback progress percentage (0-100)
-// - isActive: Whether counter is currently running
-// - startCounting(config): Initialize counter with challenge config
-// - stopCounting(): Pause counter
-// - resetProgress(): Reset counter to 0
+// Purpose: Animates points counter in real-time as user listens.
+// Derives earned points from listenedTimeMap (max-progress logic).
+// Uses react-native-track-player's useProgress() for live position.
+// No intervals - fully reactive via useEffect on progress.position.
 
-
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useProgress } from 'react-native-track-player';
 import type { PointsCounterConfig, UsePointsCounterReturn } from '../types';
-
-const POINTS_UPDATE_INTERVAL_MS = 500;
+import { useUserStore, selectListenedTimeMap } from '../stores/userStore';
+import { useMusicStore } from '../stores/musicStore';
 
 export const usePointsCounter = (): UsePointsCounterReturn => {
   const [currentPoints, setCurrentPoints] = useState(0);
   const [pointsEarned, setPointsEarned] = useState(0);
   const [isActive, setIsActive] = useState(false);
   const [config, setConfig] = useState<PointsCounterConfig | null>(null);
-  
+
   const progress = useProgress();
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const listenedTimeMap = useUserStore(selectListenedTimeMap);
 
   const startCounting = useCallback((newConfig: PointsCounterConfig) => {
     setConfig(newConfig);
@@ -38,10 +29,6 @@ export const usePointsCounter = (): UsePointsCounterReturn => {
 
   const stopCounting = useCallback(() => {
     setIsActive(false);
-    if (intervalRef.current) {
-      clearInterval(intervalRef.current);
-      intervalRef.current = null;
-    }
   }, []);
 
   const resetProgress = useCallback(() => {
@@ -49,46 +36,41 @@ export const usePointsCounter = (): UsePointsCounterReturn => {
     setPointsEarned(0);
   }, []);
 
-  const pointsEarnedRef = useRef(pointsEarned);
-  pointsEarnedRef.current = pointsEarned;
+  // Check if current challenge completed (stable, no getState() in effect)
+  const isChallengeCompleted = useMusicStore((state) =>
+    config ? state.challenges.some(c => c.id === config.challengeId && c.completed) : false
+  );
 
-  // Calculate points based on playback progress
+  // Reactive: runs whenever playback position changes
   useEffect(() => {
     if (!isActive || !config) return;
+    if (isChallengeCompleted) return;
 
-    const calculatePoints = () => {
-      if (!progress.duration || progress.duration === 0) return;
+    // Sync max listened time to store
+    const updateFn = useUserStore.getState().updateMaxListenedTime;
+    updateFn(config.challengeId, progress.position);
+  }, [progress.position, isActive, config]);
 
-      const progressPercentage = (progress.position / progress.duration) * 100;
-      const earnedPoints = Math.floor((progressPercentage / 100) * config.totalPoints);
+  // Reactive: runs whenever listenedTimeMap changes (after sync above)
+  useEffect(() => {
+    if (!config || !config.durationSeconds) return;
 
-      if (earnedPoints > pointsEarnedRef.current) {
-        pointsEarnedRef.current = earnedPoints;
-        setPointsEarned(earnedPoints);
-        setCurrentPoints(earnedPoints);
-      }
-    };
+    const maxListened = listenedTimeMap[config.challengeId] || 0;
+    const earnedPoints = Math.floor((maxListened / config.durationSeconds) * config.totalPoints);
 
-    // Calculate immediately
-    calculatePoints();
+    setPointsEarned(earnedPoints);
+    setCurrentPoints(earnedPoints);
+  }, [listenedTimeMap, config]);
 
-    // Then recalculate every POINTS_UPDATE_INTERVAL_MS while active
-    intervalRef.current = setInterval(calculatePoints, POINTS_UPDATE_INTERVAL_MS);
-
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [isActive, config]);
+  // Progress based on listenedTimeMap (doesn't jump backwards on restart)
+  const progressPercentage = config && listenedTimeMap[config.challengeId] !== undefined && config.durationSeconds
+    ? (listenedTimeMap[config.challengeId] / config.durationSeconds) * 100
+    : 0;
 
   return {
     currentPoints,
     pointsEarned,
-    progress: progress.position > 0 && progress.duration > 0
-      ? (progress.position / progress.duration) * 100
-      : 0,
+    progress: progressPercentage,
     isActive,
     startCounting,
     stopCounting,

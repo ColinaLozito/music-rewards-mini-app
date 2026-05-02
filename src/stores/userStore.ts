@@ -6,13 +6,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface UserStore {
   // State
   completedChallenges: string[];
-  totalSecondsListened: number;
+  listenedTimeMap: Record<string, number>; // challengeId -> max seconds listened
   awardedChallenges: Record<string, number>; // challengeId -> pointsAwarded
 
   // Actions
   completeChallenge: (challengeId: string) => void;
   resetProgress: () => void;
   recordAward: (challengeId: string, points: number) => void;
+  updateMaxListenedTime: (challengeId: string, currentPosition: number) => void;
 }
 
 export const useUserStore = create<UserStore>()(
@@ -20,7 +21,7 @@ export const useUserStore = create<UserStore>()(
     (set, get) => ({
       // Initial state
       completedChallenges: [],
-      totalSecondsListened: 0,
+      listenedTimeMap: {},
       awardedChallenges: {},
 
       // Actions
@@ -35,7 +36,7 @@ export const useUserStore = create<UserStore>()(
       resetProgress: () => {
         set({
           completedChallenges: [],
-          totalSecondsListened: 0,
+          listenedTimeMap: {},
           awardedChallenges: {},
         });
       },
@@ -45,15 +46,25 @@ export const useUserStore = create<UserStore>()(
           awardedChallenges: { ...state.awardedChallenges, [challengeId]: points },
         }));
       },
+
+      updateMaxListenedTime: (challengeId: string, currentPosition: number) => {
+        set((state) => {
+          const currentMax = state.listenedTimeMap[challengeId] || 0;
+          const newMax = Math.max(currentMax, currentPosition);
+          if (newMax === currentMax) return state;
+          return { listenedTimeMap: { ...state.listenedTimeMap, [challengeId]: newMax } };
+        });
+      },
     }),
     {
       name: 'user-store',
       storage: createJSONStorage(() => AsyncStorage),
-      // Only persist challenges and awarded points, NOT totalPoints (derived)
+      // Only persist challenges, listenedTimeMap, and awarded points
+      // NOT totalPoints (derived)
       partialize: (state) => ({
         completedChallenges: state.completedChallenges,
+        listenedTimeMap: state.listenedTimeMap,
         awardedChallenges: state.awardedChallenges,
-        totalSecondsListened: state.totalSecondsListened,
       }),
     }
   )
@@ -61,7 +72,7 @@ export const useUserStore = create<UserStore>()(
 
 // Selector functions
 export const selectCompletedChallenges = (state: UserStore) => state.completedChallenges;
-export const selectTotalSecondsListened = (state: UserStore) => state.totalSecondsListened;
+export const selectListenedTimeMap = (state: UserStore) => state.listenedTimeMap;
 export const selectAwardedChallenges = (state: UserStore) => state.awardedChallenges;
 export const selectTotalPoints = (state: UserStore) => {
   // Calculate totalPoints from awardedChallenges (not persisted directly)

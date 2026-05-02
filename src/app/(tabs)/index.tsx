@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 import { ChallengeList } from '../../components/challenge/ChallengeList';
 import { useMusicPlayer } from '../../hooks/useMusicPlayer';
 import { useMusicStore, selectChallenges, selectCurrentTrack, selectIsPlaying } from '../../stores/musicStore';
+import { useUserStore, selectListenedTimeMap } from '../../stores/userStore';
 import { THEME } from '../../constants/theme';
 import type { MusicChallenge } from '../../types';
 
@@ -12,16 +13,29 @@ export default function HomeScreen() {
   const challenges = useMusicStore(selectChallenges);
   const currentTrack = useMusicStore(selectCurrentTrack);
   const isPlaying = useMusicStore(selectIsPlaying);
+  const listenedTimeMap = useUserStore(selectListenedTimeMap);
+  const awardedChallenges = useUserStore((state) => state.awardedChallenges);
   const { play, resume } = useMusicPlayer();
 
   const handlePlayChallenge = async (challenge: MusicChallenge) => {
-    // If this track is already playing, just open the modal (don't restart)
-    if (currentTrack?.id === challenge.id) {
+    // Completed challenge → always restart + play (ignore current state)
+    if (challenge.completed) {
+      try {
+        await play(challenge);
+        router.push('/(modals)/player');
+      } catch (error) {
+        console.error('Failed to play challenge:', error);
+      }
+      return;
+    }
+
+    // Same track playing → just open modal (don't restart)
+    if (currentTrack?.id === challenge.id && isPlaying) {
       router.push('/(modals)/player');
       return;
     }
 
-    // If this track is current but paused, resume playback
+    // Same track paused → resume playback
     if (currentTrack?.id === challenge.id && !isPlaying) {
       try {
         await resume();
@@ -32,7 +46,7 @@ export default function HomeScreen() {
       return;
     }
 
-    // Otherwise, play the new track
+    // Different track → restart + play
     try {
       await play(challenge);
       router.push('/(modals)/player');
@@ -49,6 +63,8 @@ export default function HomeScreen() {
       </Text>
       <ChallengeList
         challenges={challenges}
+        listenedTimeMap={listenedTimeMap}
+        awardedChallenges={awardedChallenges}
         currentTrackId={currentTrack?.id}
         isPlaying={isPlaying}
         onPlayChallenge={handlePlayChallenge}

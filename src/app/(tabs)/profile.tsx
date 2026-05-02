@@ -3,15 +3,33 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert } from 'react-native';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { useMusicStore, selectChallenges } from '../../stores/musicStore';
-import { useUserStore, selectTotalPoints, selectCompletedChallenges } from '../../stores/userStore';
+import { useUserStore, selectListenedTimeMap, selectCompletedChallenges } from '../../stores/userStore';
 import { THEME } from '../../constants/theme';
+
+function calculateTotalPoints(
+  challenges: { id: string; duration: number; points: number }[],
+  listenedTimeMap: Record<string, number>,
+  awardedChallenges: Record<string, number>
+): number {
+  return challenges.reduce((sum, challenge) => {
+    if (awardedChallenges[challenge.id] !== undefined) {
+      return sum + awardedChallenges[challenge.id];
+    }
+    const listened = listenedTimeMap[challenge.id] || 0;
+    if (challenge.duration === 0) return sum;
+    return sum + Math.floor((listened / challenge.duration) * challenge.points);
+  }, 0);
+}
 
 export default function ProfileScreen() {
   const challenges = useMusicStore(selectChallenges);
-  const totalPoints = useUserStore(selectTotalPoints);
+  const listenedTimeMap = useUserStore(selectListenedTimeMap);
+  const awardedChallenges = useUserStore((state) => state.awardedChallenges);
   const completedChallenges = useUserStore(selectCompletedChallenges);
   const resetProgress = useUserStore((state) => state.resetProgress);
   const resetMusic = useMusicStore((state) => state.reset);
+
+  const totalPoints = calculateTotalPoints(challenges, listenedTimeMap, awardedChallenges);
 
   const totalChallenges = challenges.length;
   const completionRate = totalChallenges > 0 ? (completedChallenges.length / totalChallenges) * 100 : 0;

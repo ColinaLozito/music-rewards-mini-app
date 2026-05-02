@@ -4,9 +4,11 @@ import { useEffect, useState } from 'react';
 import TrackPlayer from 'react-native-track-player';
 import { setupTrackPlayer } from '../services/audioService';
 import { ErrorBoundary } from '../components/ErrorBoundary';
+import { useProgressSync } from '../hooks/useProgressSync';
 
 export default function RootLayout() {
   const [playerReady, setPlayerReady] = useState(false);
+  useProgressSync();
 
   useEffect(() => {
     // Register the playback service first
