@@ -61,10 +61,14 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
       updateProgress(currentTrack.id, progressPercentage);
     }
 
-  // Check if track is completed (98% threshold for Challenge Integrity)
+    // Check if track is completed (98% threshold for Challenge Integrity)
     if (progressPercentage >= 98 && !currentTrack.completed) {
       markChallengeComplete(currentTrack.id);
       completeChallenge(currentTrack.id);
+      
+      // Dismiss player by clearing current track when finished
+      setCurrentTrack(null);
+
       // Only award points if not already awarded for this challenge
       if (!awardedChallenges[currentTrack.id]) {
         recordAward(currentTrack.id, currentTrack.points);
@@ -180,6 +184,14 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
   const resume = useCallback(async () => {
     try {
       setLoading(true);
+      
+      // If track finished, restart from beginning
+      const { position } = await TrackPlayer.getProgress();
+      const duration = await TrackPlayer.getDuration();
+      if (duration > 0 && position >= duration * 0.98) {
+        await TrackPlayer.seekTo(0);
+      }
+
       await TrackPlayer.play();
     } catch (err) {
       console.error('Resume error:', err);

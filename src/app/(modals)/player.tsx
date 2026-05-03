@@ -10,6 +10,7 @@ import { GlassCard } from '../../components/ui/GlassCard';
 import { GlassButton } from '../../components/ui/GlassButton';
 import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { PointsCounter } from '../../components/ui/PointsCounter';
+import { AudioProgressBar } from '../../components/ui/AudioProgressBar';
 import { usePlayerModal } from '../../hooks/usePlayerModal';
 import { THEME } from '../../constants/theme';
 import { styles } from './player.styles';
@@ -24,19 +25,15 @@ export default function PlayerModal() {
     error,
     duration,
     displayPosition,
-    progressBarWidth,
-    progressBarRef,
     progress,
     challengeProgress,
     formattedTime,
     formattedDuration,
-    handleDrag,
     handlePlayPause,
     handleRestart,
-    onTouchStart,
-    onTouchMove,
-    onTouchEnd,
+    handleSeek,
     setProgressBarWidth,
+    progressBarRef,
   } = usePlayerModal();
 
   useEffect(() => {
@@ -54,11 +51,6 @@ export default function PlayerModal() {
     ...styles.progressTrack,
     ...( !isCompleted ? styles.progressDisabled : {})
   }), [isCompleted]);
-
-  const progressFillStyle = useMemo(() => ({
-    ...styles.progressFill,
-    width: `${progress}%` as const
-  }), [progress]);
 
   if (!currentTrack) {
     return (
@@ -83,7 +75,7 @@ export default function PlayerModal() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LoadingOverlay visible={loading} message="Loading..." />
+      {/* <LoadingOverlay visible={loading} message="Loading..." /> */}
       
       <View style={styles.content}>
         {/* Track Info */}
@@ -115,27 +107,21 @@ export default function PlayerModal() {
           <Text style={styles.progressLabel}>Listening Progress</Text>
           
           {/* Progress Bar */}
-          <View
-            ref={progressBarRef}
-            style={progressTrackStyle}
+          <AudioProgressBar
+            progressBarRef={progressBarRef}
+            progress={progress}
+            duration={duration}
+            currentPosition={displayPosition}
+            isCompleted={isCompleted}
+            onSeek={handleSeek}
             onLayout={(event) => setProgressBarWidth(event.nativeEvent.layout.width)}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-          >
-            <View style={styles.progressBackground}>
-              <View 
-                style={progressFillStyle} 
-              />
-            </View>
-          </View>
+            formatTime={(seconds) => {
+              const minutes = Math.floor(seconds / 60);
+              const secs = Math.floor(seconds % 60);
+              return `${minutes}:${secs.toString().padStart(2, '0')}`;
+            }}
+          />
 
-          {/* Time Display */}
-          <View style={styles.timeContainer}>
-            <Text style={styles.timeText}>{formattedTime}</Text>
-            <Text style={styles.timeText}>{formattedDuration}</Text>
-          </View>
-          
           {/* Controls */}
           <View style={styles.controlsRow}>
             <GlassButton
@@ -145,7 +131,7 @@ export default function PlayerModal() {
               style={styles.mainControlButton}
             />
             <GlassButton
-              title={loading ? "..." : isPlaying ? "⏸️ Pause" : "▶️ Play"}
+              title={isPlaying ? "⏸️ Pause" : "▶️ Play"}
               onPress={handlePlayPause}
               variant={isPlaying ? 'primary' : 'secondary'}
               style={styles.mainControlButton}

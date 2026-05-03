@@ -3,6 +3,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { router } from 'expo-router';
 import { ChallengeList } from '../../components/challenge/ChallengeList';
+import { MiniPlayer } from '../../components/ui/MiniPlayer';
 import { useMusicPlayer } from '../../hooks/useMusicPlayer';
 import { useMusicStore, selectChallenges, selectCurrentTrack, selectIsPlaying } from '../../stores/musicStore';
 import { useUserStore, selectListenedTimeMap } from '../../stores/userStore';
@@ -70,6 +71,7 @@ export default function HomeScreen() {
         isPlaying={isPlaying}
         onPlayChallenge={handlePlayChallenge}
       />
+      <MiniPlayer />
     </View>
   );
 }

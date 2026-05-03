@@ -5,9 +5,9 @@ import { useMusicPlayer } from './useMusicPlayer';
 import { useMusicStore, selectCurrentTrack, selectIsPlaying, selectChallenges } from '../stores/musicStore';
 import { useUserStore } from '../stores/userStore';
 
-const DEFAULT_PROGRESS_BAR_WIDTH = 300;
 const PROGRESS_PERCENT = 100;
 const SECONDS_PER_MINUTE = 60
+const SEEK_BUFFER_MS = 1000; // 1 second buffer
 
 export function usePlayerModal() {
   const {
@@ -40,7 +40,8 @@ export function usePlayerModal() {
   
   const [isDragging, setIsDragging] = useState(false);
   const [draggedPosition, setDraggedPosition] = useState(currentPosition);
-  const [progressBarWidth, setProgressBarWidth] = useState(DEFAULT_PROGRESS_BAR_WIDTH);
+  const [progressBarWidth, setProgressBarWidth] = useState(300);
+  const [isSeeking, setIsSeeking] = useState(false); // Buffer for race condition
   const progressBarRef = useRef<View>(null);
   
   function formatTime(seconds: number): string {
@@ -51,7 +52,8 @@ export function usePlayerModal() {
   
   function getProgress(): number {
     if (!duration || duration === 0) return 0;
-    const position = isDragging ? draggedPosition : currentPosition;
+    // Use draggedPosition if dragging OR seeking (prevents flicker)
+    const position = (isDragging || isSeeking) ? draggedPosition : currentPosition;
     return (position / duration) * PROGRESS_PERCENT;
   }
   
@@ -65,8 +67,11 @@ export function usePlayerModal() {
   function handleSeek(percentage: number): void {
     if (!duration) return;
     const newPosition = (percentage / PROGRESS_PERCENT) * duration;
+    setIsSeeking(true); // Start buffer
     seekTo(newPosition);
     setDraggedPosition(newPosition);
+    // Clear buffer after delay
+    setTimeout(() => setIsSeeking(false), SEEK_BUFFER_MS);
   }
   
   function handleDrag(event: GestureResponderEvent): void {
@@ -112,19 +117,27 @@ export function usePlayerModal() {
   }
   
   function onTouchEnd(): void {
+    if (!isCompleted) return;
     setIsDragging(false);
+    setIsSeeking(true); // Start buffer
+    
+    // Clear seeking buffer after delay (allow engine to catch up)
+    setTimeout(() => {
+      setIsSeeking(false);
+    }, SEEK_BUFFER_MS);
   }
   
   useEffect(() => {
-    if (!isDragging) {
+    // Only sync if NOT dragging AND NOT seeking
+    if (!isDragging && !isSeeking) {
       setDraggedPosition(currentPosition);
     }
-  }, [isDragging, currentPosition]);
+  }, [isDragging, isSeeking, currentPosition]);
   
   // Note: error handled by PlayerModal component via Alert (not in hook)
-  
-  const displayPosition = (isDragging ? draggedPosition : currentPosition) || 0;
-  
+   
+  const displayPosition = ((isDragging || isSeeking) ? draggedPosition : currentPosition) || 0;
+   
   return {
     // State
     currentTrack,
@@ -156,5 +169,9 @@ export function usePlayerModal() {
     
     // Loading
     loadingMessage,
+    
+    // Seek buffer (for race condition fix)
+    isSeeking,
+    setIsSeeking,
   };
 }
