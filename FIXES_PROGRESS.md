@@ -22,12 +22,12 @@ Based on analysis against `.opencode/CODE_RULES.md` and `.opencode/PROJECT_RULES
 - [x] Fix `handleRestart` to use `setLoading` from useMusicPlayer
 
 ### **Phase B: Loading States**
-- [ ] Add loading state to `pause()` in useMusicPlayer
-- [ ] Add loading state to `resume()` in useMusicPlayer
-- [ ] Add loading state to `seekTo()` in useMusicPlayer
-- [ ] Create global `LoadingOverlay` component (glassmorphism)
-- [ ] Wire `loadingMessage` through useMusicPlayer → usePlayerModal → player.tsx
-- [ ] Add loading state to `handleRestart()` in usePlayerModal
+- [x] Add loading state to `pause()` in useMusicPlayer
+- [x] Add loading state to `resume()` in useMusicPlayer
+- [x] Add loading state to `seekTo()` in useMusicPlayer
+- [x] Create global `LoadingOverlay` component (glassmorphism)
+- [x] Wire `loadingMessage` through useMusicPlayer → usePlayerModal → player.tsx
+- [x] Add loading state to `handleRestart()` in usePlayerModal
 
 ### **Phase C: Error Handling**
 - [x] Add try/catch to `play()` with error recovery
@@ -50,7 +50,7 @@ Based on analysis against `.opencode/CODE_RULES.md` and `.opencode/PROJECT_RULES
 - [x] `src/app/(modals)/player.tsx` — `event: any` → refactored to usePlayerModal hook
 
 ### **Performance (Memoization):**
-- [ ] `src/components/challenge/ChallengeCard.tsx` — wrap in `React.memo()`
+- [x] `src/components/challenge/ChallengeCard.tsx` — wrap in `React.memo()`
 - [x] `src/components/ui/GlassCard.tsx` — wrap `GlassCard` and `GlassButton` in `React.memo()`
 - [x] `src/app/(modals)/player.tsx` — `liveChallenge.find()` → moved to usePlayerModal hook
 - [x] `src/app/(modals)/player.tsx` — `formatTime`, `getProgress` → moved to usePlayerModal as functions
@@ -115,7 +115,7 @@ Based on analysis against `.opencode/CODE_RULES.md` and `.opencode/PROJECT_RULES
 ---
 
 ## **Summary Stats:**
-- 🔴 High: 13/16 completed ✅
+- 🔴 High: 16/16 completed ✅
 - 🟡 Medium: 8/18 completed
 - 🟢 Low: 4/12 completed
-- **Overall: 25/46 completed (54%)**
+- **Overall: 28/46 completed (61%)**

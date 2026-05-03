@@ -1,9 +1,25 @@
 // Audio service - TrackPlayer setup and configuration
-import TrackPlayer, { Capability, AppKilledPlaybackBehavior } from 'react-native-track-player';
+import TrackPlayer, { 
+  Capability, 
+  AppKilledPlaybackBehavior,
+  Event,
+  IOSCategory,
+  IOSCategoryOptions,
+} from 'react-native-track-player';
 
 export const setupTrackPlayer = async (): Promise<void> => {
   try {
-    await TrackPlayer.setupPlayer({ waitForBuffer: true, maxCacheSize: 10240 });
+    await TrackPlayer.setupPlayer({ 
+      waitForBuffer: true, 
+      maxCacheSize: 10240,
+      // iOS Audio Session - Background playback + Ducking
+      iosCategory: IOSCategory.Playback,
+      iosCategoryOptions: [
+        IOSCategoryOptions.AllowBluetooth,
+        IOSCategoryOptions.DuckOthers,
+        IOSCategoryOptions.AllowAirPlay,
+      ],
+    });
   } catch (error: any) {
     // Swallow "already initialized" errors
     const msg = String(error?.message || error);
@@ -25,8 +41,15 @@ export const setupTrackPlayer = async (): Promise<void> => {
       Capability.SeekTo,
     ],
     compactCapabilities: [Capability.Play, Capability.Pause],
-    android: { appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification },
-    notificationCapabilities: [Capability.Play, Capability.Pause],
+    android: { 
+      appKilledPlaybackBehavior: AppKilledPlaybackBehavior.StopPlaybackAndRemoveNotification 
+    },
+    // iOS: Show metadata in Lock Screen + Control Center
+    notificationCapabilities: [
+      Capability.Play,
+      Capability.Pause,
+      Capability.SeekTo, // Allows seeking from lock screen
+    ],
   });
 };
 
