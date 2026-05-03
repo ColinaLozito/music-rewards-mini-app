@@ -42,8 +42,8 @@ export default function PlayerModal() {
 
   const challengeStatusStyle = useMemo(() => ({
     ...styles.challengeStatus,
-    color: displayChallenge.completed ? THEME.colors.secondary : THEME.colors.accent
-  }), [displayChallenge.completed]);
+    color: displayChallenge?.completed ? THEME.colors.secondary : THEME.colors.accent
+  }), [displayChallenge?.completed]);
 
   const progressTrackStyle = useMemo(() => ({
     ...styles.progressTrack,

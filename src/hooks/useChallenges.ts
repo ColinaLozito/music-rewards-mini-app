@@ -18,6 +18,7 @@
 import { useCallback, useState } from 'react';
 import { useMusicStore, selectChallenges } from '../stores/musicStore';
 import { useUserStore, selectCompletedChallenges } from '../stores/userStore';
+import { updateLockScreenControls } from '../services/audioService';
 import type { MusicChallenge, UseChallengesReturn } from '../types';
 
 export const useChallenges = (): UseChallengesReturn => {
@@ -44,6 +45,7 @@ export const useChallenges = (): UseChallengesReturn => {
       setError(null);
       markChallengeComplete(challengeId);
       completeChallenge(challengeId);
+      await updateLockScreenControls(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to complete challenge';
       setError(message);

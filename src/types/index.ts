@@ -8,6 +8,7 @@ export interface MusicChallenge {
   points: number;
   audioUrl: string;
   imageUrl?: string;
+  artwork?: string; // For iOS Lock Screen
   description: string;
   difficulty: 'easy' | 'medium' | 'hard';
   completed: boolean;

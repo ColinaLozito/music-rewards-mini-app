@@ -9,7 +9,7 @@ import TrackPlayer, {
 } from 'react-native-track-player';
 import { useMusicStore, selectCurrentTrack, selectIsPlaying } from '../stores/musicStore';
 import { useUserStore, selectListenedTimeMap, selectCompletedChallenges, selectAwardedChallenges } from '../stores/userStore';
-import { setupTrackPlayer } from '../services/audioService';
+import { setupTrackPlayer, addTrack, updateLockScreenControls } from '../services/audioService';
 import type { MusicChallenge, UseMusicPlayerReturn } from '../types';
 
 const PROGRESS_PERCENT = 100;
@@ -63,7 +63,8 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
     if (progressPercentage >= 98 && !currentTrack.completed) {
       markChallengeComplete(currentTrack.id);
       completeChallenge(currentTrack.id);
-      
+      void updateLockScreenControls(true);
+
       // Dismiss player by clearing current track when finished
       setCurrentTrack(null);
 
@@ -106,22 +107,25 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
 
       await setupTrackPlayer();
 
-      // Reset and add new track
+      // Reset and add new track (use helper that includes artwork)
       await TrackPlayer.reset();
-      await TrackPlayer.add({
+      await addTrack({
         id: track.id,
         url: track.audioUrl,
         title: track.title,
         artist: track.artist,
         duration: track.duration,
+        artwork: track.artwork,
       });
+
+      const completedChallenges = useUserStore.getState().completedChallenges;
+      await updateLockScreenControls(completedChallenges.includes(track.id));
 
       // Start playback
       await TrackPlayer.play();
 
       // Case B (In Progress) & Case C (Completed)
       const listenedTimeMap = useUserStore.getState().listenedTimeMap;
-      const completedChallenges = useUserStore.getState().completedChallenges;
 
       if (completedChallenges.includes(track.id)) {
         // Case C: Completed → start from 0
