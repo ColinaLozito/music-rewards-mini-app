@@ -19,9 +19,6 @@ export function usePlayerModal() {
     pause,
     resume,
     seekTo,
-    loading,
-    setLoading,
-    loadingMessage,
     error
   } = useMusicPlayer();
   
@@ -95,7 +92,6 @@ export function usePlayerModal() {
   
   function handleRestart(): void {
     try {
-      setLoading(true);
       seekTo(0);
       setCurrentPosition(0);
     } finally {
@@ -144,7 +140,6 @@ export function usePlayerModal() {
     displayChallenge,
     isCompleted,
     isPlaying,
-    loading,
     error,
     duration,
     displayPosition,
@@ -166,9 +161,6 @@ export function usePlayerModal() {
     onTouchMove,
     onTouchEnd,
     setProgressBarWidth,
-    
-    // Loading
-    loadingMessage,
     
     // Seek buffer (for race condition fix)
     isSeeking,

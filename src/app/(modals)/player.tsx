@@ -8,7 +8,6 @@ import {
 } from 'react-native';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { GlassButton } from '../../components/ui/GlassButton';
-import { LoadingOverlay } from '../../components/LoadingOverlay';
 import { PointsCounter } from '../../components/ui/PointsCounter';
 import { AudioProgressBar } from '../../components/ui/AudioProgressBar';
 import { usePlayerModal } from '../../hooks/usePlayerModal';
@@ -21,7 +20,6 @@ export default function PlayerModal() {
     displayChallenge,
     isCompleted,
     isPlaying,
-    loading,
     error,
     duration,
     displayPosition,
@@ -135,7 +133,6 @@ export default function PlayerModal() {
               onPress={handlePlayPause}
               variant={isPlaying ? 'primary' : 'secondary'}
               style={styles.mainControlButton}
-              loading={loading}
             />
           </View>
         </GlassCard>

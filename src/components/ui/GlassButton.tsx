@@ -14,7 +14,6 @@ import { styles } from './GlassButton.styles';
 interface GlassButtonProps {
   title: string;
   onPress: () => void;
-  loading?: boolean;
   disabled?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
@@ -24,7 +23,6 @@ interface GlassButtonProps {
 export const GlassButton: React.FC<GlassButtonProps> = ({
   title,
   onPress,
-  loading = false,
   disabled = false,
   style,
   textStyle,
@@ -46,15 +44,11 @@ export const GlassButton: React.FC<GlassButtonProps> = ({
     >
       <TouchableOpacity
         onPress={onPress}
-        disabled={disabled || loading}
+        disabled={disabled}
         style={styles.buttonContent}
         activeOpacity={0.7}
       >
-        {loading ? (
-          <ActivityIndicator color={THEME.colors.text.primary} size="small" />
-        ) : (
-          <Text style={[styles.buttonText, textStyle]}>{title}</Text>
-        )}
+        <Text style={[styles.buttonText, textStyle]}>{title}</Text>
       </TouchableOpacity>
     </GlassCard>
   );

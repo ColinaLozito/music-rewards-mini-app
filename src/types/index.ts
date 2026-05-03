@@ -30,9 +30,6 @@ export interface UseMusicPlayerReturn {
   pause: () => void;
   resume: () => void;
   seekTo: (seconds: number) => void;
-  loading: boolean;
-  setLoading: (value: boolean) => void;
-  loadingMessage: string;
   error: string | null;
 }
 
@@ -49,7 +46,6 @@ export interface UsePointsCounterReturn {
 export interface UseChallengesReturn {
   challenges: MusicChallenge[];
   completedChallenges: string[];
-  loading: boolean;
   error: string | null;
   refreshChallenges: () => Promise<void>;
   completeChallenge: (challengeId: string) => Promise<void>;
