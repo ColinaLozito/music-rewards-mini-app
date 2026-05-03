@@ -35,6 +35,9 @@ export const useMusicStore = create<MusicStore>()(
       },
 
       updateProgress: (challengeId: string, progress: number) => {
+        // Validate inputs
+        if (!challengeId || typeof progress !== 'number' || progress < 0) return;
+        
         set((state) => ({
           challenges: state.challenges.map((challenge) =>
             challenge.id === challengeId

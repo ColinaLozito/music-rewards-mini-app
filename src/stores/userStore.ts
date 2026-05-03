@@ -48,6 +48,9 @@ export const useUserStore = create<UserStore>()(
       },
 
       updateMaxListenedTime: (challengeId: string, currentPosition: number) => {
+        // Validate inputs
+        if (!challengeId || typeof currentPosition !== 'number' || currentPosition < 0) return;
+        
         set((state) => {
           const currentMax = state.listenedTimeMap[challengeId] || 0;
           const newMax = Math.max(currentMax, currentPosition);

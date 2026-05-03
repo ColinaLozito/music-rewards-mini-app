@@ -63,10 +63,6 @@ export const PointsCounter = React.memo<PointsCounterProps>(({
           <Text style={styles.infoText}>{pointsEarned} / {totalPoints} points</Text>
         </View>
       </View>
-
-      {pointsEarned >= totalPoints && (
-        <Text style={styles.completeText}>✅ Complete!</Text>
-      )}
     </GlassCard>
   );
 });
