@@ -25,16 +25,16 @@ export const styles = StyleSheet.create({
       marginTop: THEME.spacing.sm,
     },
     progressTrack: {
-      height: 8,
-      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-      borderRadius: 4,
+      height: THEME.spacing.xs,
+      backgroundColor: THEME.colors.progressBackground,
+      borderRadius: THEME.borderRadius.sm,
       overflow: 'hidden',
       marginBottom: THEME.spacing.sm,
     },
     progressFill: {
       height: '100%',
       backgroundColor: THEME.colors.accent,
-      borderRadius: 4,
+      borderRadius: THEME.borderRadius.sm,
     },
     infoRow: {
       flexDirection: 'row',

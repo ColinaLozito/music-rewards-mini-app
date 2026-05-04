@@ -62,7 +62,7 @@ export const styles = StyleSheet.create({
   },
   progressBar: {
     height: 6,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: THEME.colors.progressBackground,
     borderRadius: 3,
     overflow: 'hidden',
     marginBottom: THEME.spacing.xs,
@@ -100,7 +100,7 @@ export const styles = StyleSheet.create({
   },
   resetCard: {
     marginBottom: THEME.spacing.xl,
-    borderColor: '#ff4444',
+    borderColor: THEME.colors.danger,
     borderWidth: 1,
   },
   resetDescription: {
@@ -109,13 +109,13 @@ export const styles = StyleSheet.create({
     marginBottom: THEME.spacing.md,
   },
   resetButton: {
-    backgroundColor: '#ff4444',
+    backgroundColor: THEME.colors.danger,
     padding: THEME.spacing.md,
     borderRadius: THEME.borderRadius.md,
     alignItems: 'center',
   },
   resetButtonText: {
-    color: '#fff',
+    color: THEME.colors.textInverse,
     fontSize: THEME.fonts.sizes.md,
     fontWeight: 'bold',
   },

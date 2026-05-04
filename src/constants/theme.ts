@@ -5,8 +5,13 @@ export const THEME = {
     primary: '#7553DB',     // Belong purple
     secondary: '#34CB76',   // Belong green  
     accent: '#FCBE25',      // Belong yellow
-    background: '#1a1a1a',  // Dark background
+    background: '#1A1A1A',  // Dark background
     glass: 'rgba(255, 255, 255, 0.1)',
+    progressBackground: 'rgba(255, 255, 255, 0.1)',
+    iconPrimary: '#FFFFFF',
+    textInverse: '#FFFFFF',
+    danger: '#FF4444',
+    error: '#FF6B6B',
     text: {
       primary: '#FFFFFF',
       secondary: 'rgba(255, 255, 255, 0.7)',
@@ -36,6 +41,7 @@ export const THEME = {
     xxl: 48,
   },
   borderRadius: {
+    xs: 4,
     sm: 8,
     md: 16,
     lg: 24,

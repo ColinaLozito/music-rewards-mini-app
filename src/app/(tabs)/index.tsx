@@ -6,8 +6,6 @@ import { ChallengeList } from '../../components/challenge/ChallengeList';
 import { MiniPlayer } from '../../components/ui/MiniPlayer';
 import { useMusicPlayer } from '../../hooks/useMusicPlayer';
 import { useMusicStore, selectChallenges, selectCurrentTrack, selectIsPlaying } from '../../stores/musicStore';
-import { useUserStore, selectListenedTimeMap } from '../../stores/userStore';
-import { THEME } from '../../constants/theme';
 import type { MusicChallenge } from '../../types';
 import { styles } from './index.styles';
 
@@ -15,8 +13,6 @@ export default function HomeScreen() {
   const challenges = useMusicStore(selectChallenges);
   const currentTrack = useMusicStore(selectCurrentTrack);
   const isPlaying = useMusicStore(selectIsPlaying);
-  const listenedTimeMap = useUserStore(selectListenedTimeMap);
-  const awardedChallenges = useUserStore((state) => state.awardedChallenges);
   const { play, resume } = useMusicPlayer();
 
   const handlePlayChallenge = async (challenge: MusicChallenge) => {
@@ -65,8 +61,6 @@ export default function HomeScreen() {
       </Text>
       <ChallengeList
         challenges={challenges}
-        listenedTimeMap={listenedTimeMap}
-        awardedChallenges={awardedChallenges}
         currentTrackId={currentTrack?.id}
         isPlaying={isPlaying}
         onPlayChallenge={handlePlayChallenge}

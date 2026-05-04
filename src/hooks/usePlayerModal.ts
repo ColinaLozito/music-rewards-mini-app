@@ -1,12 +1,12 @@
-// Custom hook for PlayerModal logic - encapsulates all state and handlers
-import { useState, useRef, useEffect } from 'react';
+// usePlayerModal - Player modal state + handlers (seek, drag, play/pause, restart)
+import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { View, GestureResponderEvent } from 'react-native';
 import { useMusicPlayer } from './useMusicPlayer';
-import { useMusicStore, selectCurrentTrack, selectIsPlaying, selectChallenges } from '../stores/musicStore';
+import { useMusicStore, selectChallenges } from '../stores/musicStore';
 import { useUserStore } from '../stores/userStore';
+import { formatTime } from '../utils/timeFormat';
 
 const PROGRESS_PERCENT = 100;
-const SECONDS_PER_MINUTE = 60
 const SEEK_BUFFER_MS = 1000; // 1 second buffer
 
 export function usePlayerModal() {
@@ -15,72 +15,72 @@ export function usePlayerModal() {
     isPlaying,
     currentPosition,
     duration,
-    play,
     pause,
     resume,
     seekTo,
     error
   } = useMusicPlayer();
-  
-  const completedChallenges = useUserStore((s) => s.completedChallenges);
-  const listenedTimeMap = useUserStore((s) => s.listenedTimeMap);
-  const setCurrentPosition = useMusicStore((state) => state.setCurrentPosition);
-  const challenges = useMusicStore(selectChallenges);
-  
-  const liveChallenge = currentTrack 
-    ? challenges.find(c => c.id === currentTrack.id) || currentTrack 
-    : null;
-  const displayChallenge = liveChallenge;
-  const isCompleted = displayChallenge 
-    ? completedChallenges.includes(displayChallenge.id) 
-    : false;
-  
+
   const [isDragging, setIsDragging] = useState(false);
   const [draggedPosition, setDraggedPosition] = useState(currentPosition);
   const [progressBarWidth, setProgressBarWidth] = useState(300);
   const [isSeeking, setIsSeeking] = useState(false); // Buffer for race condition
   const progressBarRef = useRef<View>(null);
   
-  function formatTime(seconds: number): string {
-    const minutes = Math.floor(seconds / SECONDS_PER_MINUTE);
-    const secs = Math.floor(seconds % SECONDS_PER_MINUTE);
-    return `${minutes}:${secs.toString().padStart(2, '0')}`;
-  }
+  const completedChallenges = useUserStore((state) => state.completedChallenges);
+  const listenedTimeMap = useUserStore((state) => state.listenedTimeMap);
+  const setCurrentPosition = useMusicStore((state) => state.setCurrentPosition);
+  const challenges = useMusicStore(selectChallenges);
   
-  function getProgress(): number {
+  // Memoize derived values
+  const liveChallenge = useMemo(() => 
+    currentTrack 
+      ? challenges.find(c => c.id === currentTrack.id) || currentTrack 
+      : null
+  , [currentTrack, challenges]);
+
+  const displayChallenge = liveChallenge;
+
+  const isCompleted = useMemo(() => 
+    displayChallenge 
+      ? completedChallenges.includes(displayChallenge.id) 
+      : false
+  , [displayChallenge, completedChallenges]);
+  
+  // Memoized computation functions
+  const getProgress = useCallback((): number => {
     if (!duration || duration === 0) return 0;
-    // Use draggedPosition if dragging OR seeking (prevents flicker)
     const position = (isDragging || isSeeking) ? draggedPosition : currentPosition;
     return (position / duration) * PROGRESS_PERCENT;
-  }
-  
-  function getChallengeProgress(): number {
+  }, [duration, isDragging, isSeeking, draggedPosition, currentPosition]);
+
+  const getChallengeProgress = useCallback((): number => {
     if (!displayChallenge || !duration || duration === 0) return 0;
-    if (isCompleted) return PROGRESS_PERCENT; // Already completed
+    if (isCompleted) return PROGRESS_PERCENT;
     const listened = listenedTimeMap[displayChallenge.id] || 0;
     return Math.min(PROGRESS_PERCENT, (listened / duration) * PROGRESS_PERCENT);
-  }
+  }, [displayChallenge, duration, isCompleted, listenedTimeMap]);
   
-  function handleSeek(percentage: number): void {
+  // Memoized handlers
+  const handleSeek = useCallback((percentage: number): void => {
     if (!duration) return;
     const newPosition = (percentage / PROGRESS_PERCENT) * duration;
-    setIsSeeking(true); // Start buffer
+    setIsSeeking(true);
     seekTo(newPosition);
     setDraggedPosition(newPosition);
-    // Clear buffer after delay
     setTimeout(() => setIsSeeking(false), SEEK_BUFFER_MS);
-  }
-  
-  function handleDrag(event: GestureResponderEvent): void {
+  }, [duration, seekTo]);
+
+  const handleDrag = useCallback((event: GestureResponderEvent): void => {
     if (!duration) return;
     const { locationX } = event.nativeEvent;
     const percentage = Math.max(0, Math.min(PROGRESS_PERCENT, (locationX / progressBarWidth) * PROGRESS_PERCENT));
     const newPosition = (percentage / PROGRESS_PERCENT) * duration;
     setDraggedPosition(newPosition);
     handleSeek(percentage);
-  }
-  
-  function handlePlayPause(): void {
+  }, [duration, progressBarWidth, handleSeek]);
+
+  const handlePlayPause = useCallback((): void => {
     if (isPlaying) {
       pause();
     } else {
@@ -88,54 +88,50 @@ export function usePlayerModal() {
         resume();
       }
     }
-  }
-  
-  function handleRestart(): void {
+  }, [isPlaying, pause, resume, currentTrack]);
+
+  const handleRestart = useCallback((): void => {
     try {
       seekTo(0);
       setCurrentPosition(0);
     } finally {
       // loading reset in seekTo finally block
     }
-  }
-  
-  function onTouchStart(event: GestureResponderEvent): void {
+  }, [seekTo, setCurrentPosition]);
+
+  const onTouchStart = useCallback((event: GestureResponderEvent): void => {
     if (isCompleted) {
       setIsDragging(true);
       handleDrag(event);
     }
-  }
-  
-  function onTouchMove(event: GestureResponderEvent): void {
+  }, [isCompleted, handleDrag]);
+
+  const onTouchMove = useCallback((event: GestureResponderEvent): void => {
     if (isDragging && isCompleted) {
       handleDrag(event);
     }
-  }
-  
-  function onTouchEnd(): void {
+  }, [isDragging, isCompleted, handleDrag]);
+
+  const onTouchEnd = useCallback((): void => {
     if (!isCompleted) return;
     setIsDragging(false);
-    setIsSeeking(true); // Start buffer
-    
-    // Clear seeking buffer after delay (allow engine to catch up)
+    setIsSeeking(true);
     setTimeout(() => {
       setIsSeeking(false);
     }, SEEK_BUFFER_MS);
-  }
+  }, [isCompleted]);
   
   useEffect(() => {
-    // Only sync if NOT dragging AND NOT seeking
     if (!isDragging && !isSeeking) {
       setDraggedPosition(currentPosition);
     }
   }, [isDragging, isSeeking, currentPosition]);
-  
-  // Note: error handled by PlayerModal component via Alert (not in hook)
-   
-  const displayPosition = ((isDragging || isSeeking) ? draggedPosition : currentPosition) || 0;
-   
+    
+  const displayPosition = useMemo(() => 
+    ((isDragging || isSeeking) ? draggedPosition : currentPosition) || 0
+  , [isDragging, isSeeking, draggedPosition, currentPosition]);
+
   return {
-    // State
     currentTrack,
     displayChallenge,
     isCompleted,
@@ -146,13 +142,11 @@ export function usePlayerModal() {
     progressBarWidth,
     progressBarRef,
     
-    // Computed (safe defaults)
-    progress: duration ? getProgress() : 0, // Track time progress
-    challengeProgress: duration ? getChallengeProgress() : 0, // Challenge completion %
+    progress: duration ? getProgress() : 0,
+    challengeProgress: duration ? getChallengeProgress() : 0,
     formattedTime: formatTime(displayPosition),
     formattedDuration: formatTime(duration || 0),
     
-    // Handlers
     handleDrag,
     handlePlayPause,
     handleRestart,
@@ -162,7 +156,6 @@ export function usePlayerModal() {
     onTouchEnd,
     setProgressBarWidth,
     
-    // Seek buffer (for race condition fix)
     isSeeking,
     setIsSeeking,
   };

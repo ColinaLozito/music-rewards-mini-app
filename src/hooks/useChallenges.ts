@@ -1,25 +1,10 @@
-// useChallenges hook - Manages challenge data and operations
-//
-// Purpose: Centralizes challenge-related logic that was previously scattered
-// across components. Provides a clean interface for:
-// - Reading challenges from musicStore
-// - Reading completed challenges from userStore
-// - Refreshing challenge list (re-load from source)
-// - Marking challenges as complete (updates both stores)
-//
-// Returns: UseChallengesReturn interface (see types/index.ts)
-// - challenges: Array of MusicChallenge from musicStore
-// - completedChallenges: Array of completed challenge IDs from userStore
-// - loading: Whether an async operation is in progress
-// - error: Error message if operation failed
-// - refreshChallenges(): Reload challenges
-// - completeChallenge(id): Mark a challenge as complete
+// useChallenges - Read challenge data, mark complete
+// Returns: { challenges, completedChallenges, error, refreshChallenges, completeChallenge }
 
 import { useCallback, useState } from 'react';
 import { useMusicStore, selectChallenges } from '../stores/musicStore';
 import { useUserStore, selectCompletedChallenges } from '../stores/userStore';
-import { updateLockScreenControls } from '../services/audioService';
-import type { MusicChallenge, UseChallengesReturn } from '../types';
+import type { UseChallengesReturn } from '../types';
 
 export const useChallenges = (): UseChallengesReturn => {
   const challenges = useMusicStore(selectChallenges);
@@ -33,7 +18,7 @@ export const useChallenges = (): UseChallengesReturn => {
   const refreshChallenges = useCallback(async (): Promise<void> => {
     try {
       setError(null);
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // TODO: implement actual refresh logic (fetch from API/store)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to refresh challenges';
       setError(message);
@@ -45,7 +30,6 @@ export const useChallenges = (): UseChallengesReturn => {
       setError(null);
       markChallengeComplete(challengeId);
       completeChallenge(challengeId);
-      await updateLockScreenControls(true);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to complete challenge';
       setError(message);

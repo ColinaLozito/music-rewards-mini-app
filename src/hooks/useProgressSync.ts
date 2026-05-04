@@ -1,25 +1,26 @@
-// useProgressSync hook - Syncs playback progress to listenedTimeMap globally
-//
-// Purpose: Keeps listenedTimeMap updated in real-time across the entire app.
-// Runs in root layout (_layout.tsx) so sync works even when player modal is closed.
-// No intervals - fully reactive via useEffect on progress.position.
-//
-// Effect: On every progress.position change, calls updateMaxListenedTime()
-// to persist the max seconds listened for the current challenge.
-import { useEffect } from 'react';
+// useProgressSync - Sync progress.position to listenedTimeMap (throttled 5s)
+import { useEffect, useRef } from 'react';
 import { useProgress } from 'react-native-track-player';
 import { useMusicStore, selectCurrentTrack } from '../stores/musicStore';
 import { useUserStore } from '../stores/userStore';
+
+const SYNC_INTERVAL = 5; // seconds between store updates
 
 export const useProgressSync = () => {
   const progress = useProgress();
   const currentTrack = useMusicStore(selectCurrentTrack);
   const updateMaxListenedTime = useUserStore((s) => s.updateMaxListenedTime);
+  const lastSyncedRef = useRef(0);
 
   useEffect(() => {
     if (!currentTrack) return;
     if (!progress.duration) return;
     if (progress.position === 0) return;
-    updateMaxListenedTime(currentTrack.id, progress.position);
+
+    const seconds = Math.floor(progress.position);
+    if (seconds - lastSyncedRef.current >= SYNC_INTERVAL) {
+      lastSyncedRef.current = seconds;
+      updateMaxListenedTime(currentTrack.id, progress.position);
+    }
   }, [progress.position, currentTrack?.id]);
 };

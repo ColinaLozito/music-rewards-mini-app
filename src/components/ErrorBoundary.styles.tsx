@@ -44,7 +44,7 @@ export const styles = StyleSheet.create({
     borderRadius: THEME.borderRadius.md,
   },
   retryText: {
-    color: '#000',
+    color: THEME.colors.text.primary,
     fontSize: THEME.fonts.sizes.md,
     fontWeight: 'bold',
   },

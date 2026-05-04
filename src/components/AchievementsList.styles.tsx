@@ -19,7 +19,7 @@ export const styles = StyleSheet.create({
     marginBottom: THEME.spacing.md,
   },
   achievementIcon: {
-    fontSize: 24,
+    fontSize: THEME.fonts.sizes.xxl,
     marginRight: THEME.spacing.md,
   },
   achievementText: {

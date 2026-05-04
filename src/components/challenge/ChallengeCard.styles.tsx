@@ -58,8 +58,8 @@ export const styles = StyleSheet.create({
     marginBottom: THEME.spacing.md,
   },
   progressTrack: {
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    height: THEME.spacing.xs,
+    backgroundColor: THEME.colors.progressBackground,
     borderRadius: 2,
     overflow: 'hidden',
   },

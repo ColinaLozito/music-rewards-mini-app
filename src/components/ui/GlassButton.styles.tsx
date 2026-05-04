@@ -4,15 +4,14 @@ import { THEME } from '../../constants/theme';
 
 export const styles = StyleSheet.create({
   button: {
-    height: 48,
+    width: 'auto',
     justifyContent: 'center',
-    alignItems: 'center',
+    alignItems: 'stretch'
   },
   buttonContent: {
-    width: '100%',
-    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    width: "100%"
   },
   buttonText: {
     color: THEME.colors.text.primary,

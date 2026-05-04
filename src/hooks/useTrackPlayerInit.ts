@@ -1,15 +1,18 @@
-// Hook: init TrackPlayer on mount, cleanup on unmount
-import { useEffect, useState } from 'react';
+// useTrackPlayerInit - Init TrackPlayer, kill zombie audio on reload
+import { useEffect, useRef, useState } from 'react';
 import TrackPlayer from 'react-native-track-player';
 import { setupTrackPlayer, teardownTrackPlayerForJsReload } from '../services/audioService';
 import playbackService from '../services/playbackService';
 
+// Register playback service at module level (once, not on every mount)
+TrackPlayer.registerPlaybackService(() => playbackService);
+
 export const useTrackPlayerInit = () => {
   const [playerReady, setPlayerReady] = useState(false);
+  const cancelledRef = useRef(false);
 
   useEffect(() => {
-    // Register playback service first
-    TrackPlayer.registerPlaybackService(() => playbackService);
+    cancelledRef.current = false;
 
     // Kill audio from previous bundle
     (async () => {
@@ -17,18 +20,21 @@ export const useTrackPlayerInit = () => {
         await teardownTrackPlayerForJsReload();
       } catch {}
 
+      if (cancelledRef.current) return;
+
       // Init player
       try {
         await setupTrackPlayer();
-        setPlayerReady(true);
+        if (!cancelledRef.current) setPlayerReady(true);
       } catch (error) {
         console.error('Failed to setup TrackPlayer:', error);
-        setTimeout(() => setPlayerReady(true), 1000);
+        if (!cancelledRef.current) setTimeout(() => setPlayerReady(true), 1000);
       }
     })();
 
     // Cleanup on unmount/reload
     return () => {
+      cancelledRef.current = true;
       TrackPlayer.reset()
         .then(() => {})
         .catch((err) => {

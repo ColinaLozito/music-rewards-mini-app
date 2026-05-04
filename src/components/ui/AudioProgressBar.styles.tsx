@@ -3,18 +3,18 @@ import { THEME } from '../../constants/theme';
 
 export const styles = StyleSheet.create({
   track: {
-    marginBottom: 8,
+    marginBottom: THEME.spacing.xs,
   },
   background: {
-    height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 4,
+    height: THEME.spacing.xs,
+    backgroundColor: THEME.colors.progressBackground,
+    borderRadius: THEME.borderRadius.sm,
     overflow: 'hidden',
   },
   fill: {
     height: '100%',
     backgroundColor: THEME.colors.accent,
-    borderRadius: 4,
+    borderRadius: THEME.borderRadius.sm,
   },
   disabled: {
     opacity: 0.5,
@@ -24,7 +24,7 @@ export const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   timeText: {
-    fontSize: 10,
+    fontSize: THEME.fonts.sizes.xs,
     color: THEME.colors.text.secondary,
   },
 });

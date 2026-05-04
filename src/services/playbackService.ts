@@ -65,9 +65,9 @@ export default async function playbackService(): Promise<void> {
   TrackPlayer.addEventListener(Event.RemoteDuck, (event) => {
     try {
       if (event.paused) {
-        console.log('Audio interrupted: paused =', event.paused, 'permanent =', event.permanent);
+        //
       } else {
-        console.log('Audio interruption ended');
+        //
       }
     } catch (err) {
       console.error('Remote duck error:', err);
@@ -75,7 +75,7 @@ export default async function playbackService(): Promise<void> {
   });
 
   TrackPlayer.addEventListener(Event.PlaybackQueueEnded, () => {
-    console.log('Playback queue ended');
+    //
   });
 
   TrackPlayer.addEventListener(Event.PlaybackError, (error) => {

@@ -154,8 +154,6 @@ expo-env.d.ts
 
 .opencode/
 .yarn/
+LOG_FILES/
 AGENTS.md
 OPENCODE.md
-LOG.md
-FIXES_PROGRESS.md
-FIX_LOG.md

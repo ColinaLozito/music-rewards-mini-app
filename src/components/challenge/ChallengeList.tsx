@@ -12,10 +12,10 @@
 // - isPlaying: Whether audio is currently playing
 // - onPlayChallenge: Callback when user taps Play on a challenge
 
-
 import React, { useCallback } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 import { ChallengeCard } from './ChallengeCard';
+import { useUserStore } from '../../stores/userStore';
 import type { MusicChallenge } from '../../types';
 import { styles } from './ChallengeList.styles'
 
@@ -23,8 +23,6 @@ const CHALLENGE_CARD_HEIGHT = 280;
 
 interface ChallengeListProps {
   challenges: MusicChallenge[];
-  listenedTimeMap: Record<string, number>;
-  awardedChallenges: Record<string, number>;
   currentTrackId?: string | null;
   isPlaying: boolean;
   onPlayChallenge: (challenge: MusicChallenge) => void;
@@ -32,13 +30,14 @@ interface ChallengeListProps {
 
 export const ChallengeList = React.memo<ChallengeListProps>(({
   challenges,
-  listenedTimeMap,
-  awardedChallenges,
   currentTrackId,
   isPlaying,
   onPlayChallenge,
 }) => {
- const renderChallenge = useCallback(({ item }: { item: MusicChallenge }) => {
+  const renderChallenge = useCallback(({ item }: { item: MusicChallenge }) => {
+    // Get store data directly (avoids object deps in callback)
+    const { listenedTimeMap, awardedChallenges } = useUserStore.getState();
+    
     // Use awarded points if challenge completed (full points), else calculate from listenedTimeMap
     const awarded = awardedChallenges[item.id];
     const earnedPoints = awarded !== undefined
@@ -58,7 +57,7 @@ export const ChallengeList = React.memo<ChallengeListProps>(({
         isPlaying={isPlaying}
       />
     );
-  }, [onPlayChallenge, currentTrackId, isPlaying, listenedTimeMap, awardedChallenges]);
+  }, [onPlayChallenge, currentTrackId, isPlaying]);
 
   const getItemLayout = useCallback((_: any, index: number) => ({
     length: CHALLENGE_CARD_HEIGHT,

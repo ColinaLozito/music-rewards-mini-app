@@ -73,15 +73,15 @@ export const styles = StyleSheet.create({
     marginBottom: THEME.spacing.md,
   },
   progressBackground: {
-    height: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 4,
+    height: THEME.spacing.xs,
+    backgroundColor: THEME.colors.progressBackground,
+    borderRadius: THEME.borderRadius.sm,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
     backgroundColor: THEME.colors.accent,
-    borderRadius: 4,
+    borderRadius: THEME.borderRadius.sm,
   },
   timeContainer: {
     flexDirection: 'row',
@@ -99,7 +99,7 @@ export const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 16
+    marginTop: THEME.spacing.md
   },
   progressDisabled: {
     opacity: 0.5,
@@ -113,7 +113,7 @@ export const styles = StyleSheet.create({
     marginHorizontal: THEME.spacing.xs,
   },
   errorText: {
-    color: '#FF6B6B',
+    color: THEME.colors.error,
     fontSize: THEME.fonts.sizes.sm,
     textAlign: 'center',
     marginTop: THEME.spacing.md,

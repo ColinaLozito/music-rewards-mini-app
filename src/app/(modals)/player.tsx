@@ -25,8 +25,6 @@ export default function PlayerModal() {
     displayPosition,
     progress,
     challengeProgress,
-    formattedTime,
-    formattedDuration,
     handlePlayPause,
     handleRestart,
     handleSeek,
@@ -45,23 +43,7 @@ export default function PlayerModal() {
     color: displayChallenge?.completed ? THEME.colors.secondary : THEME.colors.accent
   }), [displayChallenge?.completed]);
 
-  const progressTrackStyle = useMemo(() => ({
-    ...styles.progressTrack,
-    ...( !isCompleted ? styles.progressDisabled : {})
-  }), [isCompleted]);
-
-  if (!currentTrack) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <GlassCard style={styles.noTrackCard}>
-          <Text style={styles.noTrackText}>No track selected</Text>
-          <Text style={styles.noTrackSubtext}>
-            Go back and select a challenge to start playing music
-          </Text>
-        </GlassCard>
-      </SafeAreaView>
-    );
-  }
+  if (!currentTrack) return
 
   if (error) {
     return (
@@ -123,13 +105,13 @@ export default function PlayerModal() {
           {/* Controls */}
           <View style={styles.controlsRow}>
             <GlassButton
-              title="🔄 Restart Track"
+              title="🔄"
               onPress={handleRestart}
               variant="secondary"
               style={styles.mainControlButton}
             />
             <GlassButton
-              title={isPlaying ? "⏸️ Pause" : "▶️ Play"}
+              title={isPlaying ? "⏸️" : "▶️"}
               onPress={handlePlayPause}
               variant={isPlaying ? 'primary' : 'secondary'}
               style={styles.mainControlButton}

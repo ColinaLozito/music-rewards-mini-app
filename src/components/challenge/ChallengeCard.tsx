@@ -7,8 +7,7 @@ import { DifficultyBadge } from './DifficultyBadge';
 import { THEME } from '../../constants/theme';
 import type { MusicChallenge } from '../../types';
 import { styles } from './ChallengeCard.styles'
-
-const SECONDS_PER_MINUTE = 60;
+import { formatDuration, getButtonTitle } from '../../utils/challengeHelpers';
 
 interface ChallengeCardProps {
   challenge: MusicChallenge;
@@ -19,20 +18,6 @@ interface ChallengeCardProps {
   isPlaying?: boolean;
 }
 
-// Pure functions (outside component per CODE_RULES.md)
-function formatDuration(seconds: number): string {
-  const minutes = Math.floor(seconds / SECONDS_PER_MINUTE);
-  const remainingSeconds = seconds % SECONDS_PER_MINUTE;
-  return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-}
-
-function getButtonTitle(challenge: MusicChallenge, isCurrentTrack: boolean, isPlaying: boolean): string {
-  if (challenge.completed) return 'Play Again';
-  if (isCurrentTrack && isPlaying) return 'Open Player';
-  if (isCurrentTrack && !isPlaying) return 'Resume';
-  return 'Play Challenge';
-}
-
 export const ChallengeCard = React.memo<ChallengeCardProps>(({
   challenge,
   earnedPoints,
@@ -41,7 +26,10 @@ export const ChallengeCard = React.memo<ChallengeCardProps>(({
   isCurrentTrack = false,
   isPlaying = false,
 }) => {
-  const buttonTitle = getButtonTitle(challenge, isCurrentTrack, isPlaying);
+  const buttonTitle = React.useMemo(
+    () => getButtonTitle(challenge, isCurrentTrack, isPlaying),
+    [challenge, isCurrentTrack, isPlaying]
+  );
 
   const handlePlay = React.useCallback(() => {
     onPlay(challenge);

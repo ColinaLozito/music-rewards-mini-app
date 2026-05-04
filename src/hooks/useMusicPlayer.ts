@@ -1,5 +1,5 @@
-// useMusicPlayer hook - Integrates react-native-track-player with Zustand
-import { useCallback, useEffect, useRef, useState } from 'react';
+// useMusicPlayer - TrackPlayer + Zustand integration (play, pause, seek, resume)
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import TrackPlayer, {
   State,
   usePlaybackState,
@@ -7,8 +7,8 @@ import TrackPlayer, {
   Event,
   useTrackPlayerEvents,
 } from 'react-native-track-player';
-import { useMusicStore, selectCurrentTrack, selectIsPlaying } from '../stores/musicStore';
-import { useUserStore, selectListenedTimeMap, selectCompletedChallenges, selectAwardedChallenges } from '../stores/userStore';
+import { useMusicStore, selectCurrentTrack } from '../stores/musicStore';
+import { useUserStore } from '../stores/userStore';
 import { setupTrackPlayer, addTrack, updateLockScreenControls } from '../services/audioService';
 import type { MusicChallenge, UseMusicPlayerReturn } from '../types';
 
@@ -24,13 +24,12 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
 
   // Zustand store selectors
   const currentTrack = useMusicStore(selectCurrentTrack);
-  const isPlaying = useMusicStore(selectIsPlaying);
   const setCurrentTrack = useMusicStore((state) => state.setCurrentTrack);
   const setIsPlaying = useMusicStore((state) => state.setIsPlaying);
-  const setCurrentPosition = useMusicStore((state) => state.setCurrentPosition);
   const updateProgress = useMusicStore((state) => state.updateProgress);
   const markChallengeComplete = useMusicStore((state) => state.markChallengeComplete);
   const completeChallenge = useUserStore((state) => state.completeChallenge);
+  const lastCapabilitiesRef = useRef<boolean | null>(null);
 
   // Sync playback state to store (with ref to prevent loops)
   const prevPlayingRef = useRef(false);
@@ -47,8 +46,15 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
     }
   }, [playbackState]);
 
-  // Throttled progress sync to store (every 5 seconds, not on every position change)
-  const lastSyncRef = useRef(0);
+  // Memoize isPlaying derivation (avoid recomputation on every render)
+  const isPlayingValue = useMemo(() => {
+    let stateValue: any = playbackState;
+    if (typeof playbackState === 'object' && playbackState !== null && 'state' in playbackState) {
+      stateValue = (playbackState as any).state;
+    }
+    return stateValue === State.Playing;
+  }, [playbackState]);
+
   useEffect(() => {
     if (!progress.position || !progress.duration || !currentTrack) return;
 
@@ -68,9 +74,10 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
       // Dismiss player by clearing current track when finished
       setCurrentTrack(null);
 
-      // Only award points if not already awarded for this challenge
-      if (!awardedChallenges[currentTrack.id]) {
-        recordAward(currentTrack.id, currentTrack.points);
+      // Use getState() to avoid stale closure
+      const { awardedChallenges: aw, recordAward: ra } = useUserStore.getState();
+      if (!aw[currentTrack.id]) {
+        ra(currentTrack.id, currentTrack.points);
       }
     }
   }, [progress.position, progress.duration, currentTrack?.id]);
@@ -81,10 +88,6 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
       setError(`Playback error: ${event.message}`);
     }
   });
-
-      // Get awardedChallenges from userStore
-  const awardedChallenges = useUserStore(selectAwardedChallenges);
-  const recordAward = useUserStore((s) => s.recordAward);
 
   const play = useCallback(async (track: MusicChallenge) => {
     try {
@@ -119,7 +122,11 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
       });
 
       const completedChallenges = useUserStore.getState().completedChallenges;
-      await updateLockScreenControls(completedChallenges.includes(track.id));
+      const isCompleted = completedChallenges.includes(track.id);
+      if (lastCapabilitiesRef.current !== isCompleted) {
+        await updateLockScreenControls(isCompleted);
+        lastCapabilitiesRef.current = isCompleted;
+      }
 
       // Start playback
       await TrackPlayer.play();
@@ -183,14 +190,8 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
     }
   }, []);
 
-  // Extract isPlaying from playbackState for return
-  let stateValue: any = playbackState;
-  if (typeof playbackState === 'object' && playbackState !== null && 'state' in playbackState) {
-    stateValue = (playbackState as any).state;
-  }
-
-    return {
-      isPlaying: stateValue === State.Playing,
+  return {
+      isPlaying: isPlayingValue,
       currentTrack,
       currentPosition: progress.position,
       duration: progress.duration,
