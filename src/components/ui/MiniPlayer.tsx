@@ -1,12 +1,14 @@
 import React from 'react';
-import { TouchableOpacity, Text, View } from 'react-native';
+import { TouchableOpacity, View, Image, Text } from 'react-native';
 import { router } from 'expo-router';
 import { GlassCard } from './GlassCard';
+import { RoundedIconButton } from './RoundedIconButton';
 import { useMusicPlayer } from '../../hooks/useMusicPlayer';
 import { usePlayerModal } from '../../hooks/usePlayerModal';
 import { useMusicStore, selectCurrentTrack, selectIsPlaying } from '../../stores/musicStore';
 import { styles as miniStyles } from './MiniPlayer.styles';
 import { AudioProgressBar } from './AudioProgressBar';
+import icons from '../../../constants/icons';
 
 const SECONDS_PER_MINUTE = 60
 const TOTAL_PERCENTAGE = 100
@@ -58,14 +60,13 @@ export function MiniPlayer() {
           </TouchableOpacity>        
           
           <View style={miniStyles.controls}>
-            <TouchableOpacity 
-              style={miniStyles.playPauseButton} 
+            <RoundedIconButton 
+              icon={isPlaying ? icons.pause : icons.play} 
               onPress={handleTogglePlay}
-            >
-              <Text style={miniStyles.icon}>
-                {isPlaying ? '⏸️' : '▶️'}
-              </Text>
-            </TouchableOpacity>
+              size={40}
+              iconSize={20}
+              variant={isPlaying ? 'primary' : 'glass'}
+            />
           </View>
         </View>
 

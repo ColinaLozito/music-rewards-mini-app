@@ -4,16 +4,17 @@ import {
   View, 
   Text, 
   SafeAreaView,
-  Alert
+  Alert,
 } from 'react-native';
 import { GlassCard } from '../../components/ui/GlassCard';
-import { GlassButton } from '../../components/ui/GlassButton';
+import { RoundedIconButton } from '../../components/ui/RoundedIconButton';
 import { PointsCounter } from '../../components/ui/PointsCounter';
 import { AudioProgressBar } from '../../components/ui/AudioProgressBar';
 import { usePlayerModal } from '../../hooks/usePlayerModal';
 import { THEME } from '../../constants/theme';
 import { styles } from './player.styles';
 import { router } from 'expo-router';
+import icons from '../../../constants/icons';
 
 export default function PlayerModal() {
   const {
@@ -43,8 +44,6 @@ export default function PlayerModal() {
     color: displayChallenge?.completed ? THEME.colors.secondary : THEME.colors.accent
   }), [displayChallenge?.completed]);
 
-  //if (!currentTrack) return
-
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
@@ -54,8 +53,8 @@ export default function PlayerModal() {
   }
 
   return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.content}>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
         {/* Track Info */}
         <GlassCard style={styles.trackInfoCard}>
           <Text style={styles.trackTitle}>{displayChallenge.title}</Text>
@@ -102,17 +101,19 @@ export default function PlayerModal() {
 
           {/* Controls */}
           <View style={styles.controlsRow}>
-            <GlassButton
-              title="🔄"
+            <RoundedIconButton 
+              icon={icons.replay} 
               onPress={handleRestart}
-              variant="secondary"
-              style={styles.mainControlButton}
+              size={60}
+              iconSize={24}
+              variant="glass"
             />
-            <GlassButton
-              title={isPlaying ? "⏸️" : "▶️"}
+            <RoundedIconButton 
+              icon={isPlaying ? icons.pause : icons.play} 
               onPress={handlePlayPause}
-              variant={isPlaying ? 'primary' : 'secondary'}
-              style={styles.mainControlButton}
+              size={60}
+              iconSize={24}
+              variant={isPlaying ? 'primary' : 'glass'}
             />
           </View>
         </GlassCard>

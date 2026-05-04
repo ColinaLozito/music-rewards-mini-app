@@ -104,9 +104,23 @@ export const styles = StyleSheet.create({
   progressDisabled: {
     opacity: 0.5,
   },
-  controlButton: {
+   controlButton: {
     flex: 0.25,
     marginHorizontal: THEME.spacing.xs,
+  },
+  iconButton: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  controlIcon: {
+    width: 24,
+    height: 24,
+    tintColor: '#FFFFFF',
+    resizeMode: 'contain',
   },
   mainControlButton: {
     flex: 0.4,

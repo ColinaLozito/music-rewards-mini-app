@@ -46,6 +46,12 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  playPauseIcon: {
+    width: 20,
+    height: 20,
+    tintColor: '#FFFFFF',
+    resizeMode: 'contain',
+  },
   icon: {
     color: THEME.colors.iconPrimary,
     fontSize: THEME.fonts.sizes.lg,

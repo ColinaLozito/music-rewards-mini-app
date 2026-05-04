@@ -149,7 +149,6 @@ tsconfig.tsbuildinfo
 
 expo-env.d.ts
 # @end expo-cli
-/ios
 /android
 
 .opencode/
@@ -157,3 +156,5 @@ expo-env.d.ts
 LOG_FILES/
 AGENTS.md
 OPENCODE.md
+
+/ios
