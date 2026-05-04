@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useProgressSync } from '../hooks/useProgressSync';
 import { useTrackPlayerInit } from '../hooks/useTrackPlayerInit';
+import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 
 export default function RootLayout() {
   useProgressSync();
@@ -14,6 +15,9 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
+      {/* Global loading overlay */}
+      <LoadingOverlay />
+
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen

@@ -9,6 +9,7 @@ import TrackPlayer, {
 } from 'react-native-track-player';
 import { useMusicStore, selectCurrentTrack } from '../stores/musicStore';
 import { useUserStore } from '../stores/userStore';
+import { useLoadingStore } from '../stores/loadingStore';
 import { setupTrackPlayer, addTrack, updateLockScreenControls } from '../services/audioService';
 import type { MusicChallenge, UseMusicPlayerReturn } from '../types';
 
@@ -89,10 +90,24 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
     }
   });
 
+  const { showLoading, hideLoading } = useLoadingStore();
+
   const play = useCallback(async (track: MusicChallenge) => {
     try {
       setError(null);
 
+      // Same track playing → skip
+      if (currentTrack?.id === track.id && isPlayingValue) {
+        return;
+      }
+
+      // Same track paused → resume (no loading)
+      if (currentTrack?.id === track.id && !isPlayingValue) {
+        await resume();
+        return;
+      }
+
+      // === NEW TRACK ===
       // Save current track's progress to listenedTimeMap (HWM) before switching
       if (currentTrack && currentTrack.id && currentTrack.id !== track.id) {
         try {
@@ -100,7 +115,6 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
           if (position > 0 && duration > 0) {
             const progressPercentage = (position / duration) * PROGRESS_PERCENT;
             updateProgress(currentTrack.id, Math.min(progressPercentage, PROGRESS_PERCENT));
-            // Save to listenedTimeMap (HWM) via userStore
             useUserStore.getState().updateMaxListenedTime(currentTrack.id, position);
           }
         } catch {
@@ -110,7 +124,7 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
 
       await setupTrackPlayer();
 
-      // Reset and add new track (use helper that includes artwork)
+      // Reset and add new track
       await TrackPlayer.reset();
       await addTrack({
         id: track.id,
@@ -121,43 +135,92 @@ export const useMusicPlayer = (): UseMusicPlayerReturn => {
         artwork: track.artwork,
       });
 
-      const completedChallenges = useUserStore.getState().completedChallenges;
-      const isCompleted = completedChallenges.includes(track.id);
-      if (lastCapabilitiesRef.current !== isCompleted) {
-        await updateLockScreenControls(isCompleted);
-        lastCapabilitiesRef.current = isCompleted;
-      }
+      // === HYBRID: Fast path (500ms) ===
+      const fastPathDuration = await Promise.race([
+        TrackPlayer.getDuration(),
+        new Promise<number>((_, reject) => setTimeout(() => reject('timeout'), 500))
+      ]).catch(() => 0);
 
-      // Start playback
-      await TrackPlayer.play();
-
-      // Case B (In Progress) & Case C (Completed)
-      const listenedTimeMap = useUserStore.getState().listenedTimeMap;
-
-      if (completedChallenges.includes(track.id)) {
-        // Case C: Completed → start from 0
-        await TrackPlayer.seekTo(0);
-      } else {
-        // Case B: In Progress → seek to lastPosition (HWM)
-        const lastPosition = listenedTimeMap[track.id] || 0;
-        if (lastPosition > 0) {
-          await TrackPlayer.seekTo(lastPosition);
+      if (fastPathDuration > 0) {
+        // Duration loaded quickly → no overlay
+        const completedChallenges = useUserStore.getState().completedChallenges;
+        const isCompleted = completedChallenges.includes(track.id);
+        if (lastCapabilitiesRef.current !== isCompleted) {
+          await updateLockScreenControls(isCompleted);
+          lastCapabilitiesRef.current = isCompleted;
         }
-      }
+
+        await TrackPlayer.play();
+
+        // Seek logic
+        if (completedChallenges.includes(track.id)) {
+          await TrackPlayer.seekTo(0);
+        } else {
+          const listenedTimeMap = useUserStore.getState().listenedTimeMap;
+          const lastPosition = listenedTimeMap[track.id] || 0;
+          if (lastPosition > 0) {
+            await TrackPlayer.seekTo(lastPosition);
+          }
+        }
 
       setCurrentTrack(track);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Playback failed';
-      setError(errorMessage);
-      console.error('TrackPlayer error:', err);
-      // Reset player state on error to prevent inconsistent state
-      try {
-        await TrackPlayer.reset();
-      } catch (resetErr) {
-        console.error('Failed to reset player after error:', resetErr);
+      return; // Caller will router.push()
+    }
+
+    // === Duration not ready in 500ms → show loading overlay ===
+    showLoading('Loading track...');
+
+    // Wait for duration (max 5s total)
+    const waitForDuration = async (): Promise<void> => {
+      const startTime = Date.now();
+      while (Date.now() - startTime < 4500) { // 5s total - 500ms already spent
+        const dur = await TrackPlayer.getDuration();
+        if (dur > 0) {
+          await new Promise(resolve => setTimeout(resolve, 100)); // let progress hook update
+          return;
+        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+      console.warn('Duration not available after 5s, proceeding anyway');
+    };
+
+    await waitForDuration();
+
+    // Now duration is ready → proceed
+    const completedChallenges = useUserStore.getState().completedChallenges;
+    const isCompleted = completedChallenges.includes(track.id);
+    if (lastCapabilitiesRef.current !== isCompleted) {
+      await updateLockScreenControls(isCompleted);
+      lastCapabilitiesRef.current = isCompleted;
+    }
+
+    await TrackPlayer.play();
+
+    // Seek logic
+    if (completedChallenges.includes(track.id)) {
+      await TrackPlayer.seekTo(0);
+    } else {
+      const listenedTimeMap = useUserStore.getState().listenedTimeMap;
+      const lastPosition = listenedTimeMap[track.id] || 0;
+      if (lastPosition > 0) {
+        await TrackPlayer.seekTo(lastPosition);
       }
     }
-  }, [setCurrentTrack, currentTrack, updateProgress]);
+
+    setCurrentTrack(track);
+    hideLoading(); // Hide overlay now that duration is ready
+  } catch (err) {
+    hideLoading(); // Hide on error
+    const errorMessage = err instanceof Error ? err.message : 'Playback failed';
+    setError(errorMessage);
+    console.error('TrackPlayer error:', err);
+    try {
+      await TrackPlayer.reset();
+    } catch (resetErr) {
+      console.error('Failed to reset player after error:', resetErr);
+    }
+  }
+}, [setCurrentTrack, currentTrack, updateProgress, isPlayingValue]);
 
   const pause = useCallback(async () => {
     try {

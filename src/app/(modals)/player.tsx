@@ -54,10 +54,8 @@ export default function PlayerModal() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* <LoadingOverlay visible={loading} message="Loading..." /> */}
-      
-      <View style={styles.content}>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.content}>
         {/* Track Info */}
         <GlassCard style={styles.trackInfoCard}>
           <Text style={styles.trackTitle}>{displayChallenge.title}</Text>
