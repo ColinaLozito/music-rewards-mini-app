@@ -2,7 +2,7 @@
 import React, { useCallback } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { GlassCard } from '../../components/ui/GlassCard';
-import { AchievementsList } from '../../components/AchievementsList';
+import { AchievementsList } from '../../components/profile/AchievementsList';
 import { useMusicStore, selectChallenges } from '../../stores/musicStore';
 import { useUserStore, selectListenedTimeMap, selectCompletedChallenges, selectAwardedChallenges } from '../../stores/userStore';
 import { calculateTotalPoints } from '../../utils/pointsCalculator';

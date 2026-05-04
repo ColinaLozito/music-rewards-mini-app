@@ -1,7 +1,7 @@
 // AchievementsList component - Displays user achievements
 import React from 'react';
 import { View, Text } from 'react-native';
-import { GlassCard } from './ui/GlassCard';
+import { GlassCard } from '../ui/GlassCard';
 import { styles } from './AchievementsList.styles';
 
 const FIRST_100_POINTS_THRESHOLD = 100;

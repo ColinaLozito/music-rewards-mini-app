@@ -4,7 +4,6 @@ import { THEME } from '../constants/theme';
 
 const ERROR_EMOJI_SIZE = 48;
 const FALLBACK_CARD_MAX_WIDTH = 400;
-const PROGRESS_BORDER_RADIUS = 4;
 
 export const styles = StyleSheet.create({
   container: {
