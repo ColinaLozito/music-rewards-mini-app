@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { TouchableOpacity, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { GlassCard } from './GlassCard';
@@ -7,6 +7,9 @@ import { usePlayerModal } from '../../hooks/usePlayerModal';
 import { useMusicStore, selectCurrentTrack, selectIsPlaying } from '../../stores/musicStore';
 import { styles as miniStyles } from './MiniPlayer.styles';
 import { AudioProgressBar } from './AudioProgressBar';
+
+const SECONDS_PER_MINUTE = 60
+const TOTAL_PERCENTAGE = 100
 
 export function MiniPlayer() {
   const currentTrack = useMusicStore(selectCurrentTrack);
@@ -20,8 +23,6 @@ export function MiniPlayer() {
     duration,
     handleSeek,
     setProgressBarWidth,
-    formattedTime,
-    formattedDuration,
   } = usePlayerModal();
 
   // Early return AFTER all hooks
@@ -73,13 +74,13 @@ export function MiniPlayer() {
           progressBarRef={progressBarRef}
           progress={progress}
           duration={duration}
-          currentPosition={duration * (progress / 100)} // Approximate
+          currentPosition={duration * (progress / TOTAL_PERCENTAGE)} // Approximate
           isCompleted={isCompleted}
           onSeek={handleSeek}
           onLayout={(event) => setProgressBarWidth(event.nativeEvent.layout.width)}
           formatTime={(seconds) => {
-            const minutes = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
+            const minutes = Math.floor(seconds / SECONDS_PER_MINUTE);
+            const secs = Math.floor(seconds % SECONDS_PER_MINUTE);
             return `${minutes}:${secs.toString().padStart(2, '0')}`;
           }}
         />

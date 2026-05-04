@@ -13,10 +13,10 @@ import { AudioProgressBar } from '../../components/ui/AudioProgressBar';
 import { usePlayerModal } from '../../hooks/usePlayerModal';
 import { THEME } from '../../constants/theme';
 import { styles } from './player.styles';
+import { router } from 'expo-router';
 
 export default function PlayerModal() {
   const {
-    currentTrack,
     displayChallenge,
     isCompleted,
     isPlaying,
@@ -43,7 +43,7 @@ export default function PlayerModal() {
     color: displayChallenge?.completed ? THEME.colors.secondary : THEME.colors.accent
   }), [displayChallenge?.completed]);
 
-  if (!currentTrack) return
+  //if (!currentTrack) return
 
   if (error) {
     return (
@@ -122,8 +122,7 @@ export default function PlayerModal() {
           totalPoints={displayChallenge.points}
           durationSeconds={displayChallenge.duration}
           challengeId={displayChallenge.id}
-          isActive={isPlaying}
-        />
+         />
       </View>
     </SafeAreaView>
   );

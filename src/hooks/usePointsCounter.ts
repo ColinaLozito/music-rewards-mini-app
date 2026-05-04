@@ -18,8 +18,7 @@ export const usePointsCounter = (): UsePointsCounterReturn => {
   const startCounting = useCallback((newConfig: PointsCounterConfig) => {
     setConfig(newConfig);
     setIsActive(true);
-    setCurrentPoints(0);
-    setPointsEarned(0);
+    // DO NOT reset points - preserve earned points across pause/play
   }, []);
 
   const stopCounting = useCallback(() => {
@@ -46,17 +45,18 @@ export const usePointsCounter = (): UsePointsCounterReturn => {
     updateFn(config.challengeId, progress.position);
   }, [progress.position, isActive, config]);
 
-  // Reactive: runs when config changes, reads listenedTimeMap via getState()
-  useEffect(() => {
-    if (!config || !config.durationSeconds) return;
-
-    const { listenedTimeMap } = useUserStore.getState();
+  // Direct reactive calculation
+  const earnedPointsCalc = useMemo(() => {
+    if (!config || !config.durationSeconds) return 0;
     const maxListened = listenedTimeMap[config.challengeId] || 0;
-    const earnedPoints = Math.floor((maxListened / config.durationSeconds) * config.totalPoints);
+    return Math.floor((maxListened / config.durationSeconds) * config.totalPoints);
+  }, [config, listenedTimeMap, config?.challengeId]);
 
-    setPointsEarned(earnedPoints);
-    setCurrentPoints(earnedPoints);
-  }, [config]);
+// Update state when calculation changes
+useEffect(() => {
+  setPointsEarned(earnedPointsCalc);
+  setCurrentPoints(earnedPointsCalc);
+}, [earnedPointsCalc]);
 
   // Progress based on listenedTimeMap (doesn't jump backwards on restart)
   const progressPercentage = config && listenedTimeMap[config.challengeId] !== undefined && config.durationSeconds

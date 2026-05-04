@@ -1,12 +1,12 @@
 // Root layout for Expo Router
 import { Stack } from 'expo-router';
 import { ErrorBoundary } from '../components/ErrorBoundary';
-import { useProgressSync } from '../hooks/useProgressSync';
+import { useTrackPersistence } from '../hooks/useTrackPersistence';
 import { useTrackPlayerInit } from '../hooks/useTrackPlayerInit';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
 
 export default function RootLayout() {
-  useProgressSync();
+  useTrackPersistence();
   const playerReady = useTrackPlayerInit();
 
   if (!playerReady) {

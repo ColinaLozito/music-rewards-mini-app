@@ -12,7 +12,6 @@ interface PointsCounterProps {
   totalPoints: number;
   durationSeconds: number;
   challengeId: string;
-  isActive: boolean;
   style?: ViewStyle;
   onComplete?: () => void;
 }
@@ -21,7 +20,6 @@ export const PointsCounter = React.memo<PointsCounterProps>(({
   totalPoints,
   durationSeconds,
   challengeId,
-  isActive,
   style,
   onComplete,
 }) => {
@@ -34,14 +32,9 @@ export const PointsCounter = React.memo<PointsCounterProps>(({
   } = usePointsCounter();
 
   useEffect(() => {
-    if (isActive) {
-      startCounting({ totalPoints, durationSeconds, challengeId });
-    }
-
-    return () => {
-      stopCounting();
-    };
-  }, [isActive, totalPoints, durationSeconds, challengeId, startCounting, stopCounting]);
+    startCounting({ totalPoints, durationSeconds, challengeId });
+    return () => { stopCounting(); };
+  }, [challengeId, startCounting, stopCounting]); // Only re-start when challenge changes
 
   const progressPercentage = Math.min(progress, MAX_PROGRESS_PERCENT);
 

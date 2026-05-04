@@ -50,16 +50,20 @@ export function usePlayerModal() {
   // Memoized computation functions
   const getProgress = useCallback((): number => {
     if (!duration || duration === 0) return 0;
+    // Only force 100% if completed AND not currently playing (replay scenario)
+    if (isCompleted && !isPlaying) return PROGRESS_PERCENT;
     const position = (isDragging || isSeeking) ? draggedPosition : currentPosition;
     return (position / duration) * PROGRESS_PERCENT;
-  }, [duration, isDragging, isSeeking, draggedPosition, currentPosition]);
+  }, [duration, isDragging, isSeeking, draggedPosition, currentPosition, isCompleted, isPlaying]);
 
   const getChallengeProgress = useCallback((): number => {
     if (!displayChallenge || !duration || duration === 0) return 0;
-    if (isCompleted) return PROGRESS_PERCENT;
+    if (isCompleted && !isPlaying) return PROGRESS_PERCENT;
     const listened = listenedTimeMap[displayChallenge.id] || 0;
-    return Math.min(PROGRESS_PERCENT, (listened / duration) * PROGRESS_PERCENT);
-  }, [displayChallenge, duration, isCompleted, listenedTimeMap]);
+    // Use currentTrack.duration as fallback (more reliable than progress.duration)
+    const trackDuration = currentTrack?.duration || duration;
+    return Math.min(PROGRESS_PERCENT, (listened / trackDuration) * PROGRESS_PERCENT);
+  }, [displayChallenge, duration, isCompleted, listenedTimeMap, currentTrack?.duration, isPlaying]);
   
   // Memoized handlers
   const handleSeek = useCallback((percentage: number): void => {
