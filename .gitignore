@@ -153,7 +153,9 @@ expo-env.d.ts
 
 .opencode/
 .yarn/
-LOG_FILES/
 AGENTS.md
 OPENCODE.md
+LOG_FILES/
+LOG_FILES/LOC.md
+
 
