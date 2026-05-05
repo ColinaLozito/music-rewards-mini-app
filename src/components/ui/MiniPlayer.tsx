@@ -23,6 +23,7 @@ export function MiniPlayer() {
     progress,
     isCompleted,
     duration,
+    displayPosition,
     handleSeek,
     setProgressBarWidth,
   } = usePlayerModal();
@@ -70,13 +71,13 @@ export function MiniPlayer() {
           </View>
         </View>
 
-        {/* Progress Bar */}
-        <AudioProgressBar
-          progressBarRef={progressBarRef}
-          progress={progress}
-          duration={duration}
-          currentPosition={duration * (progress / TOTAL_PERCENTAGE)} // Approximate
-          isCompleted={isCompleted}
+         {/* Progress Bar */}
+         <AudioProgressBar
+           progressBarRef={progressBarRef}
+           progress={progress}
+           duration={duration}
+           currentPosition={displayPosition}
+           isCompleted={isCompleted}
           onSeek={handleSeek}
           onLayout={(event) => setProgressBarWidth(event.nativeEvent.layout.width)}
           formatTime={(seconds) => {

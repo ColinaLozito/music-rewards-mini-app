@@ -50,20 +50,25 @@ export function usePlayerModal() {
   // Memoized computation functions
   const getProgress = useCallback((): number => {
     if (!duration || duration === 0) return 0;
-    // Only force 100% if completed AND not currently playing (replay scenario)
-    if (isCompleted && !isPlaying) return PROGRESS_PERCENT;
+    // Only use stored progress if completed AND track actually finished (progress >= 98%)
+    if (isCompleted && !isPlaying && displayChallenge?.progress && displayChallenge.progress >= 98) {
+      return displayChallenge.progress;
+    }
     const position = (isDragging || isSeeking) ? draggedPosition : currentPosition;
     return (position / duration) * PROGRESS_PERCENT;
-  }, [duration, isDragging, isSeeking, draggedPosition, currentPosition, isCompleted, isPlaying]);
+  }, [duration, isDragging, isSeeking, draggedPosition, currentPosition, isCompleted, isPlaying, displayChallenge?.progress]);
 
   const getChallengeProgress = useCallback((): number => {
     if (!displayChallenge || !duration || duration === 0) return 0;
-    if (isCompleted && !isPlaying) return PROGRESS_PERCENT;
+    // Only use stored progress if completed AND track actually finished
+    if (isCompleted && !isPlaying && displayChallenge?.progress && displayChallenge.progress >= 98) {
+      return displayChallenge.progress;
+    }
     const listened = listenedTimeMap[displayChallenge.id] || 0;
     // Use currentTrack.duration as fallback (more reliable than progress.duration)
     const trackDuration = currentTrack?.duration || duration;
     return Math.min(PROGRESS_PERCENT, (listened / trackDuration) * PROGRESS_PERCENT);
-  }, [displayChallenge, duration, isCompleted, listenedTimeMap, currentTrack?.duration, isPlaying]);
+  }, [displayChallenge, duration, isCompleted, isPlaying, listenedTimeMap, currentTrack?.duration]);
   
   // Memoized handlers
   const handleSeek = useCallback((percentage: number): void => {
@@ -98,10 +103,14 @@ export function usePlayerModal() {
     try {
       seekTo(0);
       setCurrentPosition(0);
+      // Start playing immediately after reset
+      if (currentTrack) {
+        resume();
+      }
     } finally {
       // loading reset in seekTo finally block
     }
-  }, [seekTo, setCurrentPosition]);
+  }, [seekTo, setCurrentPosition, resume, currentTrack]);
 
   const onTouchStart = useCallback((event: GestureResponderEvent): void => {
     if (isCompleted) {

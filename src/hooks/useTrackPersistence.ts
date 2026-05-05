@@ -1,6 +1,7 @@
 // useTrackPersistence - Progress sync + Challenge completion (Global scope)
 import { useEffect, useRef } from 'react';
 import { useProgress } from 'react-native-track-player';
+import TrackPlayer from 'react-native-track-player';
 import { useMusicStore, selectCurrentTrack } from '../stores/musicStore';
 import { useUserStore } from '../stores/userStore';
 import { updateLockScreenControls } from '../services/audioService';
@@ -37,8 +38,8 @@ export const useTrackPersistence = () => {
     if (!progress.position || !progress.duration || !currentTrack) return;
     const progressPercentage = (progress.position / progress.duration) * PROGRESS_PERCENT;
     
-    // Update progress in store
-    if (progressPercentage > (currentTrack.progress || 0)) {
+    // Update progress in store (always update from current position)
+    if (progressPercentage > 0) {
       updateProgress(currentTrack.id, progressPercentage);
     }
 
@@ -49,8 +50,13 @@ export const useTrackPersistence = () => {
       completeChallenge(currentTrack.id);
       void updateLockScreenControls(true);
       
+      // Reset position so replay starts at 0
+      TrackPlayer.seekTo(0);
       // Force listenedTimeMap to full duration so points reach 100%
       updateMaxListenedTime(currentTrack.id, currentTrack.duration);
+      
+      // Reset listenedTimeMap for this track so replay starts fresh
+      updateMaxListenedTime(currentTrack.id, 0);
       
       // Dismiss player
       router.back();
