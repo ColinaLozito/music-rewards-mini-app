@@ -1,9 +1,9 @@
 // ChallengeProgressList - Reusable challenge progress list
 import React from 'react';
 import { View, Text } from 'react-native';
-import { GlassCard } from './ui/GlassCard';
+import { GlassCard } from '../ui/GlassCard';
 import { styles } from './ChallengeProgressList.styles';
-import type { MusicChallenge } from '../types';
+import type { MusicChallenge } from '../../types';
 
 export const COMPLETION_100_PERCENT = 100;
 

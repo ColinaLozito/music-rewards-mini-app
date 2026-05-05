@@ -67,7 +67,7 @@ npx expo start -c
 
 Testing on a real device is crucial to verify **Background Audio** and **Lock Screen Controls**, as simulators often have limitations with native background modes.
 
-### Option A: Development Build (Recommended)
+### Option A: Release Build
 This is the most reliable way to test native modules like `react-native-track-player`.
 
 1. **Connect your iPhone** to your Mac via USB.
@@ -76,18 +76,16 @@ This is the most reliable way to test native modules like `react-native-track-pl
    - Select the project in the left sidebar.
    - Go to **Signing & Capabilities**.
    - Select your Development Team.
-4. **Run from Terminal**:
+   - Edit schema -> Run -> Build Config -> Release
+   - Select your device
+   - Run
+
+### Option B: Develop Build 
+
+**Run from Terminal**:
 ```bash
    npx expo run:ios --device
 ```
-
-### Option B: Expo Go (Limited)
-Note: Since this project uses custom native code (TrackPlayer), Expo Go may not support all features. A development build is preferred.
-
-1. Install the Expo Go app from the App Store.
-2. Ensure your phone and computer are on the same Wi-Fi network.
-3. Start the server: npx expo start.
-4. Scan the QR code with your iPhone camera.
 
 📄 License
 This project is private and confidential.

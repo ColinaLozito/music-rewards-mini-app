@@ -23,7 +23,7 @@ export default function RootLayout() {
       
       {/* Global loading overlay */}
       <LoadingOverlay />
-
+    
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen

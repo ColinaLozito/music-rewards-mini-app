@@ -191,11 +191,9 @@ export const PlaybackOrchestrator = {
 
   async _remountTrackForBuffering(): Promise<void> {
     if (!currentTrackRef) return;
-
     try {
       // Get current position before remounting
       const { position } = await TrackPlayer.getProgress();
-
       // Re-add the track to force buffering restart
       await TrackPlayer.reset();
       await addTrack({
@@ -206,16 +204,13 @@ export const PlaybackOrchestrator = {
         duration: currentTrackRef.duration,
         artwork: currentTrackRef.artwork,
       });
-
       // Seek to the position where we left off
       if (position > 0) {
         await TrackPlayer.seekTo(position);
       }
-
       // Start playback
       await TrackPlayer.play();
 
-      console.log(`Track remounted and resumed from position: ${position}s`);
     } catch (err) {
       console.error("Failed to remount track:", err);
       throw err;
@@ -249,9 +244,6 @@ export const PlaybackOrchestrator = {
       if (isOnline && currentTrackRef) {
         if (networkErrorShown) {
           networkErrorShown = false;
-          console.log(
-            "Network recovered, remounting track to resume buffering...",
-          );
           this._remountTrackForBuffering().catch((err) => {
             console.error("Track remount failed:", err);
           });
@@ -260,9 +252,6 @@ export const PlaybackOrchestrator = {
 
         TrackPlayer.getPlaybackState().then((playbackState) => {
           if (playbackState.state !== State.Playing) {
-            console.log(
-              "Network online and playback not active, attempting resume...",
-            );
             this.resume().catch((err) => {
               console.error("Auto-resume failed:", err);
             });

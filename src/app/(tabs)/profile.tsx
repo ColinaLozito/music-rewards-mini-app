@@ -3,7 +3,7 @@ import React, { useCallback } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { AchievementsList } from '../../components/profile/AchievementsList';
-import { ChallengeProgressList } from '../../components/ChallengeProgressList';
+import { ChallengeProgressList } from '../../components/challenge/ChallengeProgressList';
 import { useMusicStore, selectChallenges } from '../../stores/musicStore';
 import { useUserStore, selectListenedTimeMap, selectCompletedChallenges, selectAwardedChallenges } from '../../stores/userStore';
 import { calculateTotalPoints } from '../../utils/pointsCalculator';

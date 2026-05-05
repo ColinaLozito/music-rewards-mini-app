@@ -1,16 +1,4 @@
 // ChallengeList component - Extracted FlatList from Home screen
-//
-// Purpose: Separates list rendering logic from HomeScreen (index.tsx).
-// Provides memoized rendering with performance optimizations:
-// - React.memo wrapping to prevent unnecessary re-renders
-// - useCallback for renderItem to maintain referential stability
-// - getItemLayout for constant-height items (280px) to optimize FlatList
-//
-// Props:
-// - challenges: MusicChallenge[] - Array of challenges to display
-// - currentTrackId: Currently playing track ID (for highlighting)
-// - isPlaying: Whether audio is currently playing
-// - onPlayChallenge: Callback when user taps Play on a challenge
 
 import React, { useCallback } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';

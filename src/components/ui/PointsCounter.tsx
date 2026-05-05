@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, ViewStyle } from 'react-native';
 import { GlassCard } from './GlassCard';
 import { usePointsCounter } from '../../hooks/usePointsCounter';
-import { THEME } from '../../constants/theme';
 import { styles } from './PointsCounter.styles'
 
 const MAX_PROGRESS_PERCENT = 100;
@@ -21,7 +20,6 @@ export const PointsCounter = React.memo<PointsCounterProps>(({
   durationSeconds,
   challengeId,
   style,
-  onComplete,
 }) => {
   const {
     currentPoints,

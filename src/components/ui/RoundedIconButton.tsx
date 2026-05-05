@@ -1,6 +1,6 @@
 // RoundedIconButton - Reusable circular icon button with glass effect
 import React from 'react';
-import { TouchableOpacity, Image, ImageStyle, ViewStyle } from 'react-native';
+import { TouchableOpacity, Image, ViewStyle } from 'react-native';
 import { styles } from './RoundedIconButton.styles';
 import { THEME } from '../../constants/theme';
 
