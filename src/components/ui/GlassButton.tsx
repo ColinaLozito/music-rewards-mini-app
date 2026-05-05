@@ -8,7 +8,7 @@ import {
   TextStyle,
 } from 'react-native';
 import { GlassCard } from './GlassCard';
-import { THEME } from '../../constants/theme';
+import { THEME } from '../../theme/theme';
 import { styles } from './GlassButton.styles';
 
 interface GlassButtonProps {

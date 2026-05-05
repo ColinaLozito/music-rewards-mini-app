@@ -1,6 +1,6 @@
 // Modal layout for player and other modals
 import { Stack } from "expo-router";
-import { THEME } from "../../constants/theme";
+import { THEME } from "../../theme/theme";
 import { ToastContainer } from "../../components/ui/ToastContainer";
 
 export default function ModalLayout() {

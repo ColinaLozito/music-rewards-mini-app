@@ -74,8 +74,10 @@ export const useTrackPersistence = () => {
         useMusicStore.getState().setCurrentTrack(null);
         router.back();
         
-        // Show success toast AFTER modal dismiss (toast mounts in root layout)
-        toast.success('Challenge completed successfully!');
+        // Delay toast to ensure modal fully unmounts (400ms)
+        setTimeout(() => {
+          toast.success('Challenge completed successfully!');
+        }, 400);
       };
 
       handleCompletion().catch(console.error);

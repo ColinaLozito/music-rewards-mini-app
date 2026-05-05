@@ -4,7 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { GlassCard } from '../ui/GlassCard';
 import { GlassButton } from '../ui/GlassButton';
 import { DifficultyBadge } from './DifficultyBadge';
-import { THEME } from '../../constants/theme';
+import { THEME } from '../../theme/theme';
 import type { MusicChallenge } from '../../types';
 import { styles } from './ChallengeCard.styles'
 import { formatDuration, getButtonTitle } from '../../utils/challengeHelpers';

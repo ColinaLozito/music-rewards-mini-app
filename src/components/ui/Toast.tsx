@@ -9,7 +9,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import { styles } from './Toast.styles';
-import { THEME } from '../../constants/theme';
+import { THEME } from '../../theme/theme';
 import type { Toast as ToastType } from '../../types/toast';
 
 const AUTO_DISMISS_MS = 4000;

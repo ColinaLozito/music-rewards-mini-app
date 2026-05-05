@@ -2,7 +2,7 @@
 import React from 'react';
 import { TouchableOpacity, Image, ViewStyle } from 'react-native';
 import { styles } from './RoundedIconButton.styles';
-import { THEME } from '../../constants/theme';
+import { THEME } from '../../theme/theme';
 
 interface RoundedIconButtonProps {
   icon: any; // require() or imported image

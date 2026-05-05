@@ -1,7 +1,7 @@
 // DifficultyBadge component - Displays challenge difficulty with color coding
 import React from 'react';
 import { View, Text } from 'react-native';
-import { THEME } from '../../constants/theme';
+import { THEME } from '../../theme/theme';
 import { styles } from './DifficultyBadge.styles';
 
 interface DifficultyBadgeProps {

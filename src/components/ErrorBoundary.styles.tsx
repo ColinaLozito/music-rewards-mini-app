@@ -1,6 +1,6 @@
 // Styles for ErrorBoundary.tsx
 import { StyleSheet } from 'react-native';
-import { THEME } from '../constants/theme';
+import { THEME } from '../theme/theme';
 
 const ERROR_EMOJI_SIZE = 48;
 const FALLBACK_CARD_MAX_WIDTH = 400;

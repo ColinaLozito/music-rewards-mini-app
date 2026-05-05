@@ -8,7 +8,7 @@ import { usePlayerModal } from '../../hooks/usePlayerModal';
 import { useMusicStore, selectCurrentTrack, selectIsPlaying } from '../../stores/musicStore';
 import { styles as miniStyles } from './MiniPlayer.styles';
 import { AudioProgressBar } from './AudioProgressBar';
-import icons from '../../../constants/icons';
+import icons from '../../constants/icons';
 
 const SECONDS_PER_MINUTE = 60
 const TOTAL_PERCENTAGE = 100

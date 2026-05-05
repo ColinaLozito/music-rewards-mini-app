@@ -2,7 +2,7 @@
 import React, { Component } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { GlassCard } from './ui/GlassCard';
-import { THEME } from '../constants/theme';
+import { THEME } from '../theme/theme';
 import { styles } from './ErrorBoundary.styles';
 
 interface ErrorBoundaryState {

@@ -6,7 +6,7 @@ import {
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
-import { THEME } from '../../constants/theme';
+import { THEME } from '../../theme/theme';
 import { styles } from './GlassCard.styles'
 
 // Glass Card Component

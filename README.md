@@ -87,6 +87,60 @@ This is the most reliable way to test native modules like `react-native-track-pl
    npx expo run:ios --device
 ```
 
+
+## /////////////////////////////////////////////
+
+# Incident Report: Xcode Build Database Corruption (Disk I/O Error)
+
+## 1. Problem Description
+The iOS build failed during the compilation phase with a specific infrastructure error from the Xcode build engine.
+
+**Error Message:**
+`❌ error: error: accessing build database ".../Build/Intermediates.noindex/XCBuildData/build.db": disk I/O error`
+
+**Root Cause:**
+The Xcode `build.db` became corrupted or locked. This typically occurs when file paths are changed (e.g., moving style folders) while a build process is active, or due to a crash in the `XCBuild` daemon.
+
+---
+
+## 2. Recovery Instructions
+
+### Phase 1: Environment Cleanup
+Clear the corrupted Xcode database and reset the file watcher.
+```bash
+# 1. Clear Xcode Derived Data (The most critical step)
+rm -rf ~/Library/Developer/Xcode/DerivedData/
+
+# 2. Reset Watchman (Prevents stale file references)
+watchman watch-del-all
+
+# 3. Purge Metro Bundler cache
+rm -rf $TMPDIR/metro-cache
+
+```
+
+### Phase 2: Native Project Restoration (If necessary)
+If the project structure was significantly modified, regenerate the native directory using Expo Prebuild.
+
+# 1. Remove existing ios folder
+rm -rf ios
+
+# 2. Regenerate native files from app.json/app.config.js
+npx expo prebuild --platform ios
+
+# 3. Reinstall CocoaPods dependencies
+npx pod-install ios
+
+### Phase 3: Re-execution
+Run the build command to rebuild the database from scratch.
+
+```bash
+npx expo run:ios
+```
+
+
+
+
 📄 License
 This project is private and confidential.
 

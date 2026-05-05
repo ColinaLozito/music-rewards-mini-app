@@ -7,7 +7,7 @@ import { MiniPlayer } from '../../components/ui/MiniPlayer';
 import { useMusicPlayer } from '../../hooks/useMusicPlayer';
 import { useMusicStore, selectChallenges, selectCurrentTrack, selectIsPlaying } from '../../stores/musicStore';
 import type { MusicChallenge } from '../../types';
-import { styles } from './index.styles';
+import { styles } from '../../theme/app/_index.styles';
 import { validateAudioUrl } from '../../utils/urlAudioValidator';
 import { useLoadingStore } from '../../stores/loadingStore';
 import { toast } from '../../utils/toast';
@@ -20,6 +20,13 @@ export default function HomeScreen() {
   const { showLoading, hideLoading } = useLoadingStore.getState();
 
   const handlePlayChallenge = async (challenge: MusicChallenge) => {
+
+     // CASE 1: Same track is already playing -> Just open the UI
+    if (currentTrack?.id === challenge.id && isPlaying) {
+      router.push('/(modals)/player');
+      return;
+    }
+
     showLoading('Loading track...');
     try {
       const isUrlValid = await validateAudioUrl(challenge.audioUrl);
@@ -28,11 +35,7 @@ export default function HomeScreen() {
         throw new Error('INVALID_TRACK_URL');
       }
       hideLoading();
-      // CASE 1: Same track is already playing -> Just open the UI
-      if (currentTrack?.id === challenge.id && isPlaying) {
-        router.push('/(modals)/player');
-        return;
-      }
+     
   
       // CASE 2: Same track is paused -> Resume and then open UI
       if (currentTrack?.id === challenge.id && !isPlaying) {

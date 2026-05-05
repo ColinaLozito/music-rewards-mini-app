@@ -11,9 +11,9 @@ import { RoundedIconButton } from '../../components/ui/RoundedIconButton';
 import { PointsCounter } from '../../components/ui/PointsCounter';
 import { AudioProgressBar } from '../../components/ui/AudioProgressBar';
 import { usePlayerModal } from '../../hooks/usePlayerModal';
-import { THEME } from '../../constants/theme';
+import { THEME } from '../../theme/theme';
 import { styles } from './player.styles';
-import icons from '../../../constants/icons';
+import icons from '../../constants/icons';
 
 export default function PlayerModal() {
   const {

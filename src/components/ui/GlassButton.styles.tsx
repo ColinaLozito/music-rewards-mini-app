@@ -1,6 +1,6 @@
 // Styles for GlassButton.tsx
 import { StyleSheet } from 'react-native';
-import { THEME } from '../../constants/theme';
+import { THEME } from '../../theme/theme';
 
 export const styles = StyleSheet.create({
   button: {

@@ -7,7 +7,7 @@ import { ChallengeProgressList } from '../../components/challenge/ChallengeProgr
 import { useMusicStore, selectChallenges } from '../../stores/musicStore';
 import { useUserStore, selectListenedTimeMap, selectCompletedChallenges, selectAwardedChallenges } from '../../stores/userStore';
 import { calculateTotalPoints } from '../../utils/pointsCalculator';
-import { styles } from './profile.styles';
+import { styles } from '../../theme/app/_profile.styles';
 
 export default function ProfileScreen() {
   const challenges = useMusicStore(selectChallenges);

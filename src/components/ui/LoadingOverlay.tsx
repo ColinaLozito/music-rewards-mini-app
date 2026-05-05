@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { useLoadingStore } from '../../stores/loadingStore';
-import { THEME } from '../../constants/theme';
+import { THEME } from '../../theme/theme';
 import { styles } from './LoadingOverlay.styles';
 
 export const LoadingOverlay = () => {
