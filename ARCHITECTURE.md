@@ -218,6 +218,114 @@ export const teardownTrackPlayerForJsReload = async () => {
 
 ---
 
+## Error Handling & Network Resilience
+
+### Error Types & Toast Mapping
+| Error Type | Toast Color | Trigger | Recovery |
+|-----------|-------------|--------|----------|
+| Track load failure | Red (error) | Bad URL / 8s timeout | Retry button |
+| Network down (while playing) | Yellow (warning) | `PlaybackError` with network keywords | Auto-resume when network returns |
+| Buffering (>5s stalled) | Yellow (warning) | Position stops advancing for 5s | Player continues from buffer, auto-clears when advances |
+| Network down (player stopped) | Red (error) | `PlaybackError` + player not playing | Retry button, auto-resume |
+| Challenge complete | Green (success) | Progress ≥98% | Auto-dismiss modal + toast |
+
+### Current Implementation
+
+**1. No auto-pause on network loss:**
+- Player continues playing from buffer until naturally stops
+- Only shows warning toasts, doesn't interrupt playback
+
+**2. Buffering detection (`useMusicPlayer.ts`):**
+```typescript
+// Poll progress.position every 100ms
+// If position unchanged for 5s → show "Buffering: Network may be slow"
+const BUFFER_TIMEOUT_MS = 5000;
+
+useEffect(() => {
+  if (currentPos === lastPositionRef.current && currentPos > 0) {
+    bufferTimerRef.current = setTimeout(() => {
+      toast.warning('Buffering: Network may be slow');
+      setIsBuffering(true);
+    }, BUFFER_TIMEOUT_MS);
+  } else {
+    // Position changed → clear timer + clear error
+    clearTimeout(bufferTimerRef.current);
+    setError(null);
+    setIsBuffering(false);
+  }
+}, [isPlayingValue, progress.position]);
+```
+
+**3. Network recovery auto-resume (`PlaybackOrchestrator.ts`):**
+```typescript
+_startNetworkListener(): void {
+  NetInfo.addEventListener(state => {
+    if (state.isConnected && state.isInternetReachable) {
+      // Network returned → auto-resume if not playing
+      TrackPlayer.getPlaybackState().then(state => {
+        if (state.state !== State.Playing && currentTrackRef) {
+          this.resume().catch(console.error);
+        }
+      });
+    }
+  });
+}
+```
+
+**4. Error state + toast flow:**
+```
+Network cuts → buffer plays → toast.warning("Buffering: Network may be slow")
+     ↓
+Buffer empties → player stops naturally → PlaybackError fired
+     ↓
+If not playing: setError() + toast.error() + retry button appears
+     ↓
+Network returns → NetInfo listener → auto-resume()
+     ↓
+Playback recovers → setError(null) + setIsBuffering(false)
+```
+
+### Fast Failure for Track Load
+```typescript
+// _waitForPlaybackStart(): Fail after 8s (5s load + 2s buffer + 1s margin)
+async _waitForPlaybackStart(timeout: number): Promise<void> {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    const state = await TrackPlayer.getPlaybackState();
+    if (state.state === State.Playing) return;
+    await new Promise(r => setTimeout(r, 100));
+  }
+  throw new Error('Track failed to start playback');
+}
+```
+
+**Why 8s?** Loading overlay shows for 5s (duration poll), then 2s buffer for iOS to actually start playback.
+
+### Network Interrupt Handling (Updated)
+```mermaid
+sequenceDiagram
+    participant Track as TrackPlayer
+    participant Hook as useMusicPlayer
+    participant Orchestrator as PlaybackOrchestrator
+    participant NetInfo as @react-native-community/netinfo
+    participant UI as player.tsx
+
+    Note over Track,UI: Network cuts during playback
+    Track->>Track: Buffer plays naturally
+    Hook->>Hook: Position unchanged 5s
+    Hook->>UI: toast.warning("Buffering...")
+    Track->>Track: Buffer empties, player stops
+    Track->>Orchestrator: PlaybackError (network)
+    Orchestrator->>Hook: setError() + toast.error()
+    Hook->>UI: error state → retry button appears
+    NetInfo->>NetInfo: network change (isConnected=true)
+    NetInfo->>Orchestrator: auto-resume()
+    Orchestrator->>Track: TrackPlayer.resume()
+    Track->>Hook: playback recovered → setError(null)
+```
+
+---
+
 ## Global Toast Notification System
 
 ### Toast Schema

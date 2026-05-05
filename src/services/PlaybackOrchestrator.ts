@@ -1,18 +1,29 @@
 // PlaybackOrchestrator - Singleton service for track playback orchestration
-import TrackPlayer, { State } from 'react-native-track-player';
-import { useMusicStore } from '../stores/musicStore';
-import { useUserStore } from '../stores/userStore';
-import { setupTrackPlayer, addTrack, updateLockScreenControls } from './audioService';
-import type { MusicChallenge } from '../types';
+import TrackPlayer, { State } from "react-native-track-player";
+import NetInfo from "@react-native-community/netinfo";
+import { toast } from "../utils/toast";
+import { useMusicStore } from "../stores/musicStore";
+import { useUserStore } from "../stores/userStore";
+import {
+  setupTrackPlayer,
+  addTrack,
+  updateLockScreenControls,
+} from "./audioService";
+import type { MusicChallenge } from "../types";
 
 const PROGRESS_PERCENT = 100;
+const PLAYBACK_START_TIMEOUT = 8000; // 8s: 5s load + 2s buffer + 1s margin
 let lastCapabilities: boolean | null = null;
+let networkUnsubscribe: (() => void) | null = null;
+let currentTrackRef: MusicChallenge | null = null;
+let networkErrorShown = false;
 
 export const PlaybackOrchestrator = {
   // --- Public Methods ---
 
   async play(track: MusicChallenge): Promise<void> {
-    const { currentTrack, updateProgress, setCurrentTrack } = useMusicStore.getState();
+    const { currentTrack, updateProgress, setCurrentTrack } =
+      useMusicStore.getState();
     let loadingShown = false;
 
     try {
@@ -33,7 +44,9 @@ export const PlaybackOrchestrator = {
       // 4. Hybrid Path: Attempt quick duration load (500ms limit)
       const quickProgress = await Promise.race([
         TrackPlayer.getProgress(),
-        new Promise<{duration: number}>(res => setTimeout(() => res({duration: 0}), 500))
+        new Promise<{ duration: number }>((res) =>
+          setTimeout(() => res({ duration: 0 }), 500),
+        ),
       ]);
 
       if (quickProgress.duration > 0) {
@@ -43,15 +56,14 @@ export const PlaybackOrchestrator = {
 
       // 5. Slow Path: Show loading overlay and poll for duration
       loadingShown = true;
-      //const duration = await this._pollForDuration(4500); 
+      //const duration = await this._pollForDuration(4500);
       loadingShown = false;
-      
-      await this._finalizeTrackStart(track, setCurrentTrack);
 
+      await this._finalizeTrackStart(track, setCurrentTrack);
     } catch (err) {
-      console.error('Orchestrator Play Error:', err);
+      console.error("Orchestrator Play Error:", err);
       throw err;
-    } 
+    }
   },
 
   async resume(): Promise<void> {
@@ -63,7 +75,7 @@ export const PlaybackOrchestrator = {
       }
       await TrackPlayer.play();
     } catch (err) {
-      console.error('Resume error:', err);
+      console.error("Resume error:", err);
     }
   },
 
@@ -71,7 +83,7 @@ export const PlaybackOrchestrator = {
     try {
       await TrackPlayer.pause();
     } catch (err) {
-      console.error('Pause error:', err);
+      console.error("Pause error:", err);
     }
   },
 
@@ -79,7 +91,7 @@ export const PlaybackOrchestrator = {
     try {
       await TrackPlayer.seekTo(seconds);
     } catch (err) {
-      console.error('Seek error:', err);
+      console.error("Seek error:", err);
     }
   },
 
@@ -94,7 +106,10 @@ export const PlaybackOrchestrator = {
 
   // --- Internal Helper Methods (Logic Encapsulation) ---
 
-  async _saveTrackProgress(trackId: string, updateProgress: (id: string, p: number) => void): Promise<void> {
+  async _saveTrackProgress(
+    trackId: string,
+    updateProgress: (id: string, p: number) => void,
+  ): Promise<void> {
     try {
       const { position, duration } = await TrackPlayer.getProgress();
       if (position > 0 && duration > 0) {
@@ -102,7 +117,9 @@ export const PlaybackOrchestrator = {
         updateProgress(trackId, Math.min(progressPercentage, PROGRESS_PERCENT));
         useUserStore.getState().updateMaxListenedTime(trackId, position);
       }
-    } catch { /* Ignore progress save errors */ }
+    } catch {
+      /* Ignore progress save errors */
+    }
   },
 
   async _prepareNewTrack(track: MusicChallenge): Promise<void> {
@@ -118,7 +135,10 @@ export const PlaybackOrchestrator = {
     });
   },
 
-  async _finalizeTrackStart(track: MusicChallenge, setCurrentTrack: (t: MusicChallenge) => void): Promise<void> {
+  async _finalizeTrackStart(
+    track: MusicChallenge,
+    setCurrentTrack: (t: MusicChallenge) => void,
+  ): Promise<void> {
     const completedChallenges = useUserStore.getState().completedChallenges;
     const isCompleted = completedChallenges.includes(track.id);
 
@@ -130,6 +150,13 @@ export const PlaybackOrchestrator = {
 
     await TrackPlayer.play();
 
+    // Wait for playback to actually start (fail fast after 8s)
+    await this._waitForPlaybackStart(PLAYBACK_START_TIMEOUT);
+
+    // Start network listener for auto-retry
+    this._startNetworkListener();
+    currentTrackRef = track;
+
     // Restoration logic: Start from beginning if completed, else resume from last position
     if (isCompleted) {
       await TrackPlayer.seekTo(0);
@@ -137,7 +164,7 @@ export const PlaybackOrchestrator = {
       const lastPos = useUserStore.getState().listenedTimeMap[track.id] || 0;
       if (lastPos > 0) await TrackPlayer.seekTo(lastPos);
     }
-    
+
     setCurrentTrack(track);
   },
 
@@ -146,9 +173,102 @@ export const PlaybackOrchestrator = {
     while (Date.now() - start < timeout) {
       const { duration } = await TrackPlayer.getProgress();
       if (duration > 0) return duration;
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise((r) => setTimeout(r, 100));
     }
-    console.warn('Duration metadata not available, continuing without it.');
+    console.warn("Duration metadata not available, continuing without it.");
     return 0;
-  }
+  },
+
+  async _waitForPlaybackStart(timeout: number): Promise<void> {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      const state = await TrackPlayer.getPlaybackState();
+      if (state.state === State.Playing) return;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    throw new Error("Track failed to start playback");
+  },
+
+  async _remountTrackForBuffering(): Promise<void> {
+    if (!currentTrackRef) return;
+
+    try {
+      // Get current position before remounting
+      const { position } = await TrackPlayer.getProgress();
+
+      // Re-add the track to force buffering restart
+      await TrackPlayer.reset();
+      await addTrack({
+        id: currentTrackRef.id,
+        url: currentTrackRef.audioUrl,
+        title: currentTrackRef.title,
+        artist: currentTrackRef.artist,
+        duration: currentTrackRef.duration,
+        artwork: currentTrackRef.artwork,
+      });
+
+      // Seek to the position where we left off
+      if (position > 0) {
+        await TrackPlayer.seekTo(position);
+      }
+
+      // Start playback
+      await TrackPlayer.play();
+
+      console.log(`Track remounted and resumed from position: ${position}s`);
+    } catch (err) {
+      console.error("Failed to remount track:", err);
+      throw err;
+    }
+  },
+
+  _startNetworkListener(): void {
+    // Cleanup previous listener
+    if (networkUnsubscribe) {
+      networkUnsubscribe();
+    }
+
+    networkErrorShown = false;
+    networkUnsubscribe = NetInfo.addEventListener((state) => {
+      const isOffline =
+        state.isConnected === false || state.isInternetReachable === false;
+      const isOnline =
+        state.isConnected === true && state.isInternetReachable !== false;
+
+      if (isOffline && currentTrackRef && !networkErrorShown) {
+        networkErrorShown = true;
+        console.warn(
+          "Network lost. Showing toast and letting playback continue until buffered data finishes.",
+        );
+        toast.error(
+          "Network connection lost. Playback will continue until buffered data finishes.",
+        );
+        return;
+      }
+
+      if (isOnline && currentTrackRef) {
+        if (networkErrorShown) {
+          networkErrorShown = false;
+          console.log(
+            "Network recovered, remounting track to resume buffering...",
+          );
+          this._remountTrackForBuffering().catch((err) => {
+            console.error("Track remount failed:", err);
+          });
+          return;
+        }
+
+        TrackPlayer.getPlaybackState().then((playbackState) => {
+          if (playbackState.state !== State.Playing) {
+            console.log(
+              "Network online and playback not active, attempting resume...",
+            );
+            this.resume().catch((err) => {
+              console.error("Auto-resume failed:", err);
+            });
+          }
+        });
+      }
+    });
+  },
 };
