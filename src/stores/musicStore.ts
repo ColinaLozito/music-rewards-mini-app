@@ -3,7 +3,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MusicChallenge } from '../types';
-import { SAMPLE_CHALLENGES } from '../constants/theme';
+import { SAMPLE_CHALLENGES } from '../constants/challenges';
 
 interface MusicStore {
   // State
@@ -13,33 +13,31 @@ interface MusicStore {
   currentPosition: number;
   
   // Actions
-  loadChallenges: () => void;
   setCurrentTrack: (track: MusicChallenge) => void;
   updateProgress: (challengeId: string, progress: number) => void;
   markChallengeComplete: (challengeId: string) => void;
   setIsPlaying: (playing: boolean) => void;
   setCurrentPosition: (position: number) => void;
+  reset: () => void;
 }
 
 export const useMusicStore = create<MusicStore>()(
   persist(
     (set, get) => ({
-      // Initial state
+      // Initial state - will be overridden by persisted state if it exists
       challenges: SAMPLE_CHALLENGES,
       currentTrack: null,
       isPlaying: false,
       currentPosition: 0,
-
-      // Actions
-      loadChallenges: () => {
-        set({ challenges: SAMPLE_CHALLENGES });
-      },
 
       setCurrentTrack: (track: MusicChallenge) => {
         set({ currentTrack: track });
       },
 
       updateProgress: (challengeId: string, progress: number) => {
+        // Validate inputs
+        if (!challengeId || typeof progress !== 'number' || progress < 0) return;
+        
         set((state) => ({
           challenges: state.challenges.map((challenge) =>
             challenge.id === challengeId
@@ -70,6 +68,15 @@ export const useMusicStore = create<MusicStore>()(
 
       setCurrentPosition: (position: number) => {
         set({ currentPosition: position });
+      },
+
+      reset: () => {
+        set({
+          challenges: SAMPLE_CHALLENGES,
+          currentTrack: null,
+          isPlaying: false,
+          currentPosition: 0,
+        });
       },
     }),
     {

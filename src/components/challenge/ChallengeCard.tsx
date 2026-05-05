@@ -1,51 +1,60 @@
 // ChallengeCard component - Individual challenge display
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { GlassCard, GlassButton } from '../ui/GlassCard';
-import { THEME } from '../../constants/theme';
+import { GlassCard } from '../ui/GlassCard';
+import { GlassButton } from '../ui/GlassButton';
+import { DifficultyBadge } from './DifficultyBadge';
+import { THEME } from '../../theme/theme';
 import type { MusicChallenge } from '../../types';
+import { styles } from './ChallengeCard.styles'
+import { formatDuration, getButtonTitle } from '../../utils/challengeHelpers';
 
 interface ChallengeCardProps {
   challenge: MusicChallenge;
+  earnedPoints: number;
+  progressPercentage: number; // From listenedTimeMap (actual playback)
   onPlay: (challenge: MusicChallenge) => void;
   isCurrentTrack?: boolean;
   isPlaying?: boolean;
 }
 
-export const ChallengeCard: React.FC<ChallengeCardProps> = ({
+export const ChallengeCard = React.memo<ChallengeCardProps>(({
   challenge,
+  earnedPoints,
+  progressPercentage,
   onPlay,
   isCurrentTrack = false,
   isPlaying = false,
 }) => {
-  const formatDuration = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
+  const buttonTitle = React.useMemo(
+    () => getButtonTitle(challenge, isCurrentTrack, isPlaying),
+    [challenge, isCurrentTrack, isPlaying]
+  );
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case 'easy': return THEME.colors.secondary;
-      case 'medium': return THEME.colors.accent;
-      case 'hard': return THEME.colors.primary;
-      default: return THEME.colors.text.secondary;
+  const handlePlay = React.useCallback(() => {
+    onPlay(challenge);
+  }, [onPlay, challenge]);
+
+  const cardStyle = React.useMemo(() => {
+    if (isCurrentTrack) {
+      return { ...styles.card, ...styles.currentTrackCard };
     }
-  };
+    return styles.card;
+  }, [isCurrentTrack]);
 
-  const getButtonTitle = () => {
-    if (challenge.completed) return 'Completed ✓';
-    if (isCurrentTrack && isPlaying) return 'Playing...';
-    if (isCurrentTrack && !isPlaying) return 'Resume';
-    return 'Play Challenge';
-  };
+  const pointsStyle = React.useMemo(() => [
+    styles.infoValue,
+    { color: THEME.colors.accent }
+  ], []);
+
+  const progressFillStyle = React.useMemo(() => ({
+    ...styles.progressFill,
+    width: `${progressPercentage}%` as const
+  }), [progressPercentage]);
 
   return (
     <GlassCard
-      style={StyleSheet.flatten([
-        styles.card,
-        isCurrentTrack && styles.currentTrackCard
-      ])}
+      style={cardStyle}
       gradientColors={
         isCurrentTrack
           ? THEME.glass.gradientColors.primary
@@ -57,14 +66,7 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
           <Text style={styles.title}>{challenge.title}</Text>
           <Text style={styles.artist}>{challenge.artist}</Text>
         </View>
-        <View style={StyleSheet.flatten([
-          styles.difficultyBadge,
-          { backgroundColor: getDifficultyColor(challenge.difficulty) }
-        ])}>
-          <Text style={styles.difficultyText}>
-            {challenge.difficulty.toUpperCase()}
-          </Text>
-        </View>
+        <DifficultyBadge difficulty={challenge.difficulty} />
       </View>
 
       <Text style={styles.description} numberOfLines={2}>
@@ -78,117 +80,32 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
         </View>
         <View style={styles.infoItem}>
           <Text style={styles.infoLabel}>Points</Text>
-          <Text style={[styles.infoValue, { color: THEME.colors.accent }]}> 
-            {challenge.points}
+          <Text style={pointsStyle}>
+            {earnedPoints} / {challenge.points}
           </Text>
         </View>
         <View style={styles.infoItem}>
           <Text style={styles.infoLabel}>Progress</Text>
-          <Text style={styles.infoValue}>{Math.round(challenge.progress)}%</Text>
+          <Text style={styles.infoValue}>{Math.round(progressPercentage)}%</Text>
         </View>
       </View>
 
-      {challenge.progress > 0 && (
+      {progressPercentage > 0 && (
         <View style={styles.progressContainer}>
           <View style={styles.progressTrack}>
-            <View
-              style={StyleSheet.flatten([
-                styles.progressFill,
-                { width: `${challenge.progress}%` }
-              ])}
-            />
+            <View style={progressFillStyle} />
           </View>
         </View>
       )}
 
       <GlassButton
-        title={getButtonTitle()}
-        onPress={() => onPlay(challenge)}
+        title={buttonTitle}
+        onPress={handlePlay}
         variant={isCurrentTrack ? 'primary' : 'secondary'}
-        disabled={challenge.completed}
         style={styles.playButton}
       />
     </GlassCard>
   );
-};
-
-const styles = StyleSheet.create({
-  card: {
-    marginBottom: THEME.spacing.md,
-  },
-  currentTrackCard: {
-    borderWidth: 2,
-    borderColor: THEME.colors.primary,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: THEME.spacing.sm,
-  },
-  titleSection: {
-    flex: 1,
-    marginRight: THEME.spacing.sm,
-  },
-  title: {
-    fontSize: THEME.fonts.sizes.lg,
-    fontWeight: 'bold',
-    color: THEME.colors.text.primary,
-    marginBottom: THEME.spacing.xs,
-  },
-  artist: {
-    fontSize: THEME.fonts.sizes.md,
-    color: THEME.colors.text.secondary,
-  },
-  difficultyBadge: {
-    paddingHorizontal: THEME.spacing.sm,
-    paddingVertical: THEME.spacing.xs,
-    borderRadius: THEME.borderRadius.sm,
-  },
-  difficultyText: {
-    fontSize: THEME.fonts.sizes.xs,
-    fontWeight: 'bold',
-    color: THEME.colors.background,
-  },
-  description: {
-    fontSize: THEME.fonts.sizes.sm,
-    color: THEME.colors.text.tertiary,
-    lineHeight: 20,
-    marginBottom: THEME.spacing.md,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: THEME.spacing.md,
-  },
-  infoItem: {
-    alignItems: 'center',
-  },
-  infoLabel: {
-    fontSize: THEME.fonts.sizes.xs,
-    color: THEME.colors.text.tertiary,
-    marginBottom: THEME.spacing.xs,
-  },
-  infoValue: {
-    fontSize: THEME.fonts.sizes.sm,
-    fontWeight: '600',
-    color: THEME.colors.text.primary,
-  },
-  progressContainer: {
-    marginBottom: THEME.spacing.md,
-  },
-  progressTrack: {
-    height: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    backgroundColor: THEME.colors.accent,
-    borderRadius: 2,
-  },
-  playButton: {
-    marginTop: THEME.spacing.sm,
-  },
 });
+
+ChallengeCard.displayName = 'ChallengeCard';

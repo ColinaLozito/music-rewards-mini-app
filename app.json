@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "musicrewards-test-app",
-    "slug": "musicrewards-test-app",
+    "name": "music-rewards-mini-app",
+    "slug": "music-rewards-mini-app",
     "version": "1.0.0",
     "platforms": [
       "ios",
@@ -9,7 +9,7 @@
     ],
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "scheme": "musicrewards-test-app",
+    "scheme": "music-rewards-mini-app",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -18,14 +18,18 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.wallinex.musicrewards-test-app"
+      "bundleIdentifier": "com.luiscolina.music-rewards-mini-app",
+      "backgroundModes": ["audio"],
+      "infoPlist": {
+        "UIBackgroundModes": ["audio"]
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#FFFFFF"
       },
-      "package": "com.wallinex.musicrewardstestapp"
+      "package": "com.luiscolina.musicrewardsminiapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"

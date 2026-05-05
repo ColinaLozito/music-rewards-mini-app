@@ -5,8 +5,18 @@ export const THEME = {
     primary: '#7553DB',     // Belong purple
     secondary: '#34CB76',   // Belong green  
     accent: '#FCBE25',      // Belong yellow
-    background: '#1a1a1a',  // Dark background
+    background: '#1A1A1A',  // Dark background
     glass: 'rgba(255, 255, 255, 0.1)',
+    progressBackground: 'rgba(255, 255, 255, 0.1)',
+    iconPrimary: '#FFFFFF',
+    textInverse: '#FFFFFF',
+    danger: '#FF4444',
+    error: '#FF6B6B',
+    toast: {
+      success: '#22C55E', // green-500
+      warning: '#EAB308', // yellow-500
+      error: '#EF4444',   // red-500
+    },
     text: {
       primary: '#FFFFFF',
       secondary: 'rgba(255, 255, 255, 0.7)',
@@ -36,6 +46,7 @@ export const THEME = {
     xxl: 48,
   },
   borderRadius: {
+    xs: 4,
     sm: 8,
     md: 16,
     lg: 24,
@@ -49,31 +60,3 @@ export const THEME = {
     }
   }
 };
-
-// Sample challenge data with actual Belong tracks
-export const SAMPLE_CHALLENGES = [
-  {
-    id: 'challenge-1',
-    title: 'All Night',
-    artist: 'Camo & Krooked',
-    duration: 219, // 3:39
-    points: 150,
-    audioUrl: 'https://belong-dev-public2.s3.us-east-1.amazonaws.com/misc/Camo-Krooked-All-Night.mp3',
-    description: 'Listen to this drum & bass classic to earn points',
-    difficulty: 'easy' as const,
-    completed: false,
-    progress: 0,
-  },
-  {
-    id: 'challenge-2',
-    title: 'New Forms',
-    artist: 'Roni Size',
-    duration: 464, // 7:44
-    points: 300,
-    audioUrl: 'https://belong-dev-public2.s3.us-east-1.amazonaws.com/misc/New-Forms-Roni+Size.mp3',
-    description: 'Complete this legendary track for bonus points',
-    difficulty: 'medium' as const,
-    completed: false,
-    progress: 0,
-  },
-];

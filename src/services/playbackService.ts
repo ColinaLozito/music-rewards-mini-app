@@ -1,41 +1,84 @@
-// Playback service for react-native-track-player
-// This file handles background playback events
-import TrackPlayer, { Event } from 'react-native-track-player';
+// Playback service for react-native-track-player (no React hooks — runs in headless context)
+import TrackPlayer, { Event, State } from 'react-native-track-player';
+import { useUserStore } from '../stores/userStore';
 
-export default async function playbackService() {
-  // This service needs to be registered in order for the TrackPlayer to work
-  // when the app is in the background
-  
-  TrackPlayer.addEventListener(Event.RemotePause, () => {
-    TrackPlayer.pause();
-  });
-
-  TrackPlayer.addEventListener(Event.RemotePlay, () => {
-    TrackPlayer.play();
-  });
-
-  TrackPlayer.addEventListener(Event.RemoteNext, () => {
-    TrackPlayer.skipToNext();
-  });
-
-  TrackPlayer.addEventListener(Event.RemotePrevious, () => {
-    TrackPlayer.skipToPrevious();
-  });
-
-  TrackPlayer.addEventListener(Event.RemoteSeek, (event) => {
-    TrackPlayer.seekTo(event.position);
-  });
-
-  // Handle playback queue ended
-  TrackPlayer.addEventListener(Event.PlaybackQueueEnded, (event) => {
-    console.log('Playback queue ended:', event);
-  });
-
-  // Handle playback errors
-  TrackPlayer.addEventListener(Event.PlaybackError, (event) => {
-    console.error('Playback error:', event);
-  });
+async function isActiveChallengeCompleted(): Promise<boolean> {
+  const active = await TrackPlayer.getActiveTrack();
+  const id = active?.id;
+  if (!id || typeof id !== 'string') return false;
+  return useUserStore.getState().completedChallenges.includes(id);
 }
 
-// Also export as module.exports for compatibility
-module.exports = playbackService;
+export default async function playbackService(): Promise<void> {
+  TrackPlayer.addEventListener(Event.RemotePlay, async () => {
+    try {
+      const state = await TrackPlayer.getState();
+      if (state !== State.Playing) await TrackPlayer.play();
+    } catch (err) {
+      console.error('Remote play error:', err);
+    }
+  });
+
+  TrackPlayer.addEventListener(Event.RemotePause, async () => {
+    try {
+      await TrackPlayer.pause();
+    } catch (err) {
+      console.error('Remote pause error:', err);
+    }
+  });
+
+  TrackPlayer.addEventListener(Event.RemoteStop, async () => {
+    try {
+      await TrackPlayer.stop();
+    } catch (err) {
+      console.error('Remote stop error:', err);
+    }
+  });
+
+  TrackPlayer.addEventListener(Event.RemoteNext, async () => {
+    try {
+      if (!(await isActiveChallengeCompleted())) return;
+      await TrackPlayer.skipToNext();
+    } catch (err) {
+      console.error('Remote next error:', err);
+    }
+  });
+
+  TrackPlayer.addEventListener(Event.RemotePrevious, async () => {
+    try {
+      if (!(await isActiveChallengeCompleted())) return;
+      await TrackPlayer.skipToPrevious();
+    } catch (err) {
+      console.error('Remote previous error:', err);
+    }
+  });
+
+  TrackPlayer.addEventListener(Event.RemoteSeek, async (event) => {
+    try {
+      if (!(await isActiveChallengeCompleted())) return;
+      await TrackPlayer.seekTo(event.position);
+    } catch (err) {
+      console.error('Remote seek error:', err);
+    }
+  });
+
+  TrackPlayer.addEventListener(Event.RemoteDuck, (event) => {
+    try {
+      if (event.paused) {
+        //
+      } else {
+        //
+      }
+    } catch (err) {
+      console.error('Remote duck error:', err);
+    }
+  });
+
+  TrackPlayer.addEventListener(Event.PlaybackQueueEnded, () => {
+    //
+  });
+
+  TrackPlayer.addEventListener(Event.PlaybackError, (error) => {
+    console.error('Playback service error:', error);
+  });
+}

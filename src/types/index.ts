@@ -8,6 +8,7 @@ export interface MusicChallenge {
   points: number;
   audioUrl: string;
   imageUrl?: string;
+  artwork?: string; // For iOS Lock Screen
   description: string;
   difficulty: 'easy' | 'medium' | 'hard';
   completed: boolean;
@@ -30,8 +31,9 @@ export interface UseMusicPlayerReturn {
   pause: () => void;
   resume: () => void;
   seekTo: (seconds: number) => void;
-  loading: boolean;
   error: string | null;
+  retry: () => Promise<void>;
+  isBuffering: boolean;
 }
 
 export interface UsePointsCounterReturn {
@@ -47,7 +49,6 @@ export interface UsePointsCounterReturn {
 export interface UseChallengesReturn {
   challenges: MusicChallenge[];
   completedChallenges: string[];
-  loading: boolean;
   error: string | null;
   refreshChallenges: () => Promise<void>;
   completeChallenge: (challengeId: string) => Promise<void>;
