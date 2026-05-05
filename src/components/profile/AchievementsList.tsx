@@ -1,12 +1,10 @@
-// AchievementsList component - Displays user achievements
+// AchievementsList component - Displays user achievements (data-driven)
 import React from 'react';
-import { View, Text } from 'react-native';
-import { GlassCard } from '../ui/GlassCard';
+import { Text } from 'react-native';
+import { GlassCard } from '../../components/ui/GlassCard';
+import { AchievementBadge } from '../../components/ui/AchievementBadge';
+import { ACHIEVEMENTS } from '../../constants/achievements';
 import { styles } from './AchievementsList.styles';
-
-const FIRST_100_POINTS_THRESHOLD = 100;
-const MUSIC_LOVER_CHALLENGES_COUNT = 1;
-const PERFECT_SCORE_COMPLETION_RATE = 100;
 
 interface AchievementsListProps {
   totalPoints: number;
@@ -19,34 +17,18 @@ export const AchievementsList: React.FC<AchievementsListProps> = ({
   completedChallengesCount,
   completionRate,
 }) => {
-  const hasAnyAchievement = totalPoints > 0 || completedChallengesCount > 0;
+  const stats = { totalPoints, completedChallengesCount, completionRate };
+  const unlockedAchievements = ACHIEVEMENTS.filter(a => a.isUnlocked(stats));
 
   return (
     <GlassCard style={styles.achievementsCard}>
       <Text style={styles.sectionTitle}>Achievements</Text>
       
-      {totalPoints >= FIRST_100_POINTS_THRESHOLD && (
-        <View style={styles.achievement}>
-          <Text style={styles.achievementIcon}>🏆</Text>
-          <Text style={styles.achievementText}>First 100 Points!</Text>
-        </View>
-      )}
-      
-      {completedChallengesCount >= MUSIC_LOVER_CHALLENGES_COUNT && (
-        <View style={styles.achievement}>
-          <Text style={styles.achievementIcon}>🎵</Text>
-          <Text style={styles.achievementText}>Music Lover</Text>
-        </View>
-      )}
-      
-      {completionRate >= PERFECT_SCORE_COMPLETION_RATE && (
-        <View style={styles.achievement}>
-          <Text style={styles.achievementIcon}>🌟</Text>
-          <Text style={styles.achievementText}>Perfect Score!</Text>
-        </View>
-      )}
-
-      {!hasAnyAchievement && (
+      {unlockedAchievements.length > 0 ? (
+        unlockedAchievements.map(a => (
+          <AchievementBadge key={a.id} icon={a.icon} title={a.title} description={a.description} />
+        ))
+      ) : (
         <Text style={styles.noAchievements}>
           Complete challenges to unlock achievements!
         </Text>

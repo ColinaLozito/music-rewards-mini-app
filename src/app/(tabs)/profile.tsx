@@ -3,13 +3,11 @@ import React, { useCallback } from 'react';
 import { View, Text, ScrollView, Alert, TouchableOpacity } from 'react-native';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { AchievementsList } from '../../components/profile/AchievementsList';
+import { ChallengeProgressList } from '../../components/ChallengeProgressList';
 import { useMusicStore, selectChallenges } from '../../stores/musicStore';
 import { useUserStore, selectListenedTimeMap, selectCompletedChallenges, selectAwardedChallenges } from '../../stores/userStore';
 import { calculateTotalPoints } from '../../utils/pointsCalculator';
-import { THEME } from '../../constants/theme';
 import { styles } from './profile.styles';
-
-const COMPLETION_100_PERCENT = 100;
 
 export default function ProfileScreen() {
   const challenges = useMusicStore(selectChallenges);
@@ -20,17 +18,8 @@ export default function ProfileScreen() {
   const resetMusic = useMusicStore((state) => state.reset);
 
   const totalPoints = calculateTotalPoints(challenges, listenedTimeMap, awardedChallenges);
-
   const totalChallenges = challenges.length;
-  const completionRate = totalChallenges > 0 ? (completedChallenges.length / totalChallenges) * COMPLETION_100_PERCENT : 0;
-
-  function getChallengeProgress(challengeId: string, isCompleted: boolean): number {
-    if (isCompleted) return COMPLETION_100_PERCENT;
-    const listened = listenedTimeMap[challengeId] || 0;
-    const challenge = challenges.find(c => c.id === challengeId);
-    if (!challenge || challenge.duration === 0) return 0;
-    return Math.min(COMPLETION_100_PERCENT, (listened / challenge.duration) * COMPLETION_100_PERCENT);
-  }
+  const completionRate = totalChallenges > 0 ? (completedChallenges.length / totalChallenges) * 100 : 0;
 
   const handleReset = useCallback(() => {
     Alert.alert(
@@ -53,7 +42,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container}>
       <Text style={styles.header}>Your Progress</Text>
-
+      
       {/* Stats Overview */}
       <GlassCard style={styles.statsCard}>
         <View style={styles.statsGrid}>
@@ -73,44 +62,18 @@ export default function ProfileScreen() {
       </GlassCard>
 
       {/* Challenge Progress */}
-      <GlassCard style={styles.progressCard}>
-        <Text style={styles.sectionTitle}>Challenge Progress</Text>
-        {challenges.map((challenge) => {
-          const isCompleted = completedChallenges.includes(challenge.id);
-          const displayProgress = getChallengeProgress(challenge.id, isCompleted);
-          return (
-            <View key={challenge.id} style={styles.challengeItem}>
-              <View style={styles.challengeHeader}>
-                <Text style={styles.challengeTitle}>{challenge.title}</Text>
-                <Text style={[
-                  styles.challengeStatus,
-                  { color: isCompleted ? THEME.colors.secondary : THEME.colors.text.secondary }
-                ]}>
-                  {isCompleted ? '✅' : '⏳'}
-                </Text>
-              </View>
-                <View style={styles.progressBar}>
-                  <View 
-                    style={[
-                      styles.progressFill,
-                      { width: `${Math.round(displayProgress)}%` }
-                    ]} 
-                  />
-                </View>
-                <Text style={styles.progressText}>
-                  {Math.round(displayProgress)}% • {challenge.points} points
-                </Text>
-            </View>
-          );
-        })}
-      </GlassCard>
+      <ChallengeProgressList
+        challenges={challenges}
+        completedChallenges={completedChallenges}
+        listenedTimeMap={listenedTimeMap}
+      />
 
-       {/* Achievements */}
-       <AchievementsList
-         totalPoints={totalPoints}
-         completedChallengesCount={completedChallenges.length}
-         completionRate={completionRate}
-       />
+      {/* Achievements */}
+      <AchievementsList
+        totalPoints={totalPoints}
+        completedChallengesCount={completedChallenges.length}
+        completionRate={completionRate}
+      />
 
       {/* Reset App Button */}
       <GlassCard style={styles.resetCard}>
@@ -118,7 +81,7 @@ export default function ProfileScreen() {
         <Text style={styles.resetDescription}>
           Erase all local data: points, progress, and completed challenges.
         </Text>
-         <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
+        <TouchableOpacity style={styles.resetButton} onPress={handleReset}>
           <Text style={styles.resetButtonText}>Reset App</Text>
         </TouchableOpacity>
       </GlassCard>
