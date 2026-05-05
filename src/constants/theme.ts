@@ -12,6 +12,11 @@ export const THEME = {
     textInverse: '#FFFFFF',
     danger: '#FF4444',
     error: '#FF6B6B',
+    toast: {
+      success: '#22C55E', // green-500
+      warning: '#EAB308', // yellow-500
+      error: '#EF4444',   // red-500
+    },
     text: {
       primary: '#FFFFFF',
       secondary: 'rgba(255, 255, 255, 0.7)',

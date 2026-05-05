@@ -4,6 +4,7 @@ import { ErrorBoundary } from '../components/ErrorBoundary';
 import { useTrackPersistence } from '../hooks/useTrackPersistence';
 import { useTrackPlayerInit } from '../hooks/useTrackPlayerInit';
 import { LoadingOverlay } from '../components/ui/LoadingOverlay';
+import { ToastContainer } from '../components/ui/ToastContainer';
 
 export default function RootLayout() {
   useTrackPersistence();
@@ -15,6 +16,9 @@ export default function RootLayout() {
 
   return (
     <ErrorBoundary>
+      {/* Global notifications */}
+      <ToastContainer />
+      
       {/* Global loading overlay */}
       <LoadingOverlay />
 
