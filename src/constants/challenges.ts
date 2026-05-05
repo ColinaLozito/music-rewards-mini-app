@@ -8,7 +8,7 @@ export const SAMPLE_CHALLENGES: MusicChallenge[] = [
     artist: 'Camo & Krooked',
     duration: 219, // 3:39
     points: 150,
-    audioUrl: 'https://belong-dev-public2.s3.us-east-1.amazonaws.com/misc/Camo-Krooked-All-Night.mp3',
+    audioUrl: 'https://belong-dev-public2.s3.us-east-1.amazonaws2.com/misc/Camo-Krooked-All-Night.mp3',
     description: 'Listen to this drum & bass classic to earn points',
     difficulty: 'easy',
     completed: false,

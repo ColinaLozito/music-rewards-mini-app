@@ -5,6 +5,7 @@ import TrackPlayer from 'react-native-track-player';
 import { useMusicStore, selectCurrentTrack } from '../stores/musicStore';
 import { useUserStore } from '../stores/userStore';
 import { updateLockScreenControls } from '../services/audioService';
+import { toast } from '../utils/toast';
 import { PROGRESS_PERCENT } from './useMusicPlayer';
 import { router } from 'expo-router';
 
@@ -45,28 +46,39 @@ export const useTrackPersistence = () => {
 
     // Check completion
     if (progressPercentage >= MINIMUM_PROGRESS_REQUIRED && !currentTrack.completed) {
-      updateProgress(currentTrack.id, FULL_PROGRESS);
-      markChallengeComplete(currentTrack.id);
-      completeChallenge(currentTrack.id);
-      void updateLockScreenControls(true);
-      
-      // Reset position so replay starts at 0
-      TrackPlayer.seekTo(0);
-      // Force listenedTimeMap to full duration so points reach 100%
-      updateMaxListenedTime(currentTrack.id, currentTrack.duration);
-      
-      // Reset listenedTimeMap for this track so replay starts fresh
-      updateMaxListenedTime(currentTrack.id, 0);
-      
-      // Dismiss player
-      router.back();
-      useMusicStore.getState().setCurrentTrack(null);
-      
-      // Award points (if not already awarded)
-      const { awardedChallenges: aw, recordAward: ra } = useUserStore.getState();
-      if (!aw[currentTrack.id]) {
-        ra(currentTrack.id, currentTrack.points);
-      }
+      // Async completion handler to allow await
+      const handleCompletion = async () => {
+        // Stop playback immediately to prevent ghost track
+        await TrackPlayer.pause();
+        
+        updateProgress(currentTrack!.id, FULL_PROGRESS);
+        markChallengeComplete(currentTrack!.id);
+        completeChallenge(currentTrack!.id);
+        void updateLockScreenControls(true);
+        
+        // Reset position so replay starts at 0
+        await TrackPlayer.seekTo(0);
+        // Force listenedTimeMap to full duration so points reach 100%
+        updateMaxListenedTime(currentTrack!.id, currentTrack!.duration);
+        
+        // Reset listenedTimeMap for this track so replay starts fresh
+        updateMaxListenedTime(currentTrack!.id, 0);
+        
+        // Award points (if not already awarded)
+        const { awardedChallenges: aw, recordAward: ra } = useUserStore.getState();
+        if (!aw[currentTrack!.id]) {
+          ra(currentTrack!.id, currentTrack!.points);
+        }
+        
+        // Dismiss modal FIRST (toast lives in root layout, persists after dismiss)
+        useMusicStore.getState().setCurrentTrack(null);
+        router.back();
+        
+        // Show success toast AFTER modal dismiss (toast mounts in root layout)
+        toast.success('Challenge completed successfully!');
+      };
+
+      handleCompletion().catch(console.error);
     }
   }, [progress.position, progress.duration, currentTrack?.id]);
 };

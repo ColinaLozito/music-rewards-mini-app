@@ -13,7 +13,6 @@ import { AudioProgressBar } from '../../components/ui/AudioProgressBar';
 import { usePlayerModal } from '../../hooks/usePlayerModal';
 import { THEME } from '../../constants/theme';
 import { styles } from './player.styles';
-import { router } from 'expo-router';
 import icons from '../../../constants/icons';
 
 export default function PlayerModal() {
@@ -22,6 +21,8 @@ export default function PlayerModal() {
     isCompleted,
     isPlaying,
     error,
+    isBuffering,
+    retry,
     duration,
     displayPosition,
     progress,
@@ -44,10 +45,19 @@ export default function PlayerModal() {
     color: displayChallenge?.completed ? THEME.colors.secondary : THEME.colors.accent
   }), [displayChallenge?.completed]);
 
-  if (error) {
+  if (error && !displayChallenge) {
     return (
       <SafeAreaView style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+          <RoundedIconButton 
+            icon={icons.replay} 
+            onPress={retry}
+            size={60}
+            iconSize={24}
+            variant="primary"
+          />
+        </View>
       </SafeAreaView>
     );
   }
@@ -67,6 +77,13 @@ export default function PlayerModal() {
           </View>
         </GlassCard>
 
+        {/* Buffering Indicator */}
+        {isBuffering && (
+          <GlassCard style={styles.bufferingCard}>
+            <Text style={styles.bufferingText}>Buffering...</Text>
+          </GlassCard>
+        )}
+
         {/* Challenge Progress */}
         <GlassCard style={styles.challengeCard}>
           <View style={styles.challengeInfo}>
@@ -83,26 +100,30 @@ export default function PlayerModal() {
         <GlassCard style={styles.progressCard}>
           <Text style={styles.progressLabel}>Listening Progress</Text>
           
-          {/* Progress Bar */}
-          <AudioProgressBar
-            progressBarRef={progressBarRef}
-            progress={progress}
-            duration={duration}
-            currentPosition={displayPosition}
-            isCompleted={isCompleted}
-            onSeek={handleSeek}
-            onLayout={(event) => setProgressBarWidth(event.nativeEvent.layout.width)}
-            formatTime={(seconds) => {
-              const minutes = Math.floor(seconds / 60);
-              const secs = Math.floor(seconds % 60);
-              return `${minutes}:${secs.toString().padStart(2, '0')}`;
-            }}
-          />
+          {/* Progress Bar or Buffering */}
+          {isBuffering ? (
+            <Text style={styles.bufferingText}>Loading track...</Text>
+          ) : (
+            <AudioProgressBar
+              progressBarRef={progressBarRef}
+              progress={progress}
+              duration={duration}
+              currentPosition={displayPosition}
+              isCompleted={isCompleted}
+              onSeek={handleSeek}
+              onLayout={(event) => setProgressBarWidth(event.nativeEvent.layout.width)}
+              formatTime={(seconds) => {
+                const minutes = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${minutes}:${secs.toString().padStart(2, '0')}`;
+              }}
+            />
+          )}
 
           {/* Controls */}
           <View style={styles.controlsRow}>
             <RoundedIconButton 
-              icon={icons.replay} 
+              icon={icons.rewind} 
               onPress={handleRestart}
               size={60}
               iconSize={24}
@@ -115,6 +136,15 @@ export default function PlayerModal() {
               iconSize={24}
               variant={isPlaying ? 'primary' : 'glass'}
             />
+            {error && (
+              <RoundedIconButton 
+                icon={icons.replay} 
+                onPress={retry}
+                size={60}
+                iconSize={24}
+                variant="primary"
+              />
+            )}
           </View>
         </GlassCard>
 

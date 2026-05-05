@@ -218,6 +218,108 @@ export const teardownTrackPlayerForJsReload = async () => {
 
 ---
 
+## Global Toast Notification System
+
+### Toast Schema
+```typescript
+// src/types/toast.ts
+export type ToastType = 'success' | 'warning' | 'error';
+
+export interface Toast {
+  id: string;
+  message: string;
+  type: ToastType;
+  createdAt: number;
+}
+```
+
+### Toast Colors (from theme.ts)
+```typescript
+toast: {
+  success: '#22C55E', // green-500 (challenge completed)
+  warning: '#EAB308', // yellow-500 (buffering, retry)
+  error: '#EF4444',   // red-500 (network error, playback failure)
+}
+```
+
+### Toast Flow Diagram
+```mermaid
+sequenceDiagram
+    participant Any as Any Component
+    participant Store as toastStore (Zustand)
+    participant Container as ToastContainer
+    participant Toast as ToastItem (Animated)
+
+    Any->>Store: toast.success("Challenge completed!")
+    Store->>Store: Add toast to array
+    Store->>Container: Re-render with new toast
+    Container->>Toast: Mount with slide animation
+    Toast->>Toast: Animated.timing slideY: -100→0 (300ms)
+    Note over Toast: Visible for 3000ms
+    Toast->>Store: Auto-dismiss (setTimeout 3000ms)
+    Store->>Store: Remove toast from array
+    Store->>Container: Re-render (toast removed)
+    Toast->>Toast: Animated.timing slideY: 0→-100 (200ms)
+    Toast->>Toast: Unmount after animation complete
+```
+
+### Toast diagram
+
+┌─────────────────────────────────────────┐
+│         RootLayout (_layout.tsx)        │
+│                                         │
+│  ┌─────────────────────────────────┐    │
+│  │      ToastProvider (Global)     │    │
+│  │  - Mounts ToastContainer        │    │
+│  │  - Provides toast() function    │    │
+│  └─────────────────────────────────┘    │
+│                                         │
+│  ┌─────────────────────────────────┐    │
+│  │      LoadingOverlay (Existing)  │    │
+│  └─────────────────────────────────┘    │
+│                                         │
+│  ┌─────────────────────────────────┐    │
+│  │         App Stack / Tabs        │    │
+│  └─────────────────────────────────┘    │
+└─────────────────────────────────────────┘
+
+ToastStore (Zustand)
+├── toasts: Toast[]
+├── showToast(message, type) 
+├── dismissToast(id)
+└── autoDismiss after 3s
+
+
+### Toast Usage
+```typescript
+import { toast } from '../utils/toast';
+
+// Success (green) - Challenge completed
+toast.success('Challenge completed successfully!');
+
+// Warning (yellow) - Recoverable issues
+toast.warning('Retrying playback...');
+toast.warning('Buffering...');
+
+// Error (red) - Network/playback failures
+toast.error('Network error: Check your connection');
+toast.error('Playback error: Unable to load track');
+```
+
+### Architecture
+```
+src/
+├── types/toast.ts              # ToastType, Toast interfaces
+├── stores/toastStore.ts        # Zustand store (global state)
+├── components/ui/Toast.tsx     # Animated toast item (react-native-reanimated)
+├── components/ui/ToastContainer.tsx  # Mounts in root layout
+└── utils/toast.ts              # Helper: toast.success/warning/error
+```
+
+**Mounted in:** `src/app/_layout.tsx` (global scope, top of screen)
+
+---
+
 ## Key Libraries
 - **Expo Router:** File-based routing (tabs + modals)
 - **Zustand:** Lightweight state management with persistence

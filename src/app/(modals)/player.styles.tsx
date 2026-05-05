@@ -153,4 +153,19 @@ export const styles = StyleSheet.create({
     fontSize: THEME.fonts.sizes.sm,
     color: THEME.colors.text.secondary,
   },
+  bufferingCard: {
+    alignItems: 'center',
+    padding: THEME.spacing.md,
+  },
+  bufferingText: {
+    fontSize: THEME.fonts.sizes.md,
+    color: THEME.colors.text.secondary,
+    textAlign: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: THEME.spacing.md,
+  },
 });

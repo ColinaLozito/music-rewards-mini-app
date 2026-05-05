@@ -1,6 +1,5 @@
 // PlaybackOrchestrator - Singleton service for track playback orchestration
 import TrackPlayer, { State } from 'react-native-track-player';
-import { useLoadingStore } from '../stores/loadingStore';
 import { useMusicStore } from '../stores/musicStore';
 import { useUserStore } from '../stores/userStore';
 import { setupTrackPlayer, addTrack, updateLockScreenControls } from './audioService';
@@ -13,8 +12,8 @@ export const PlaybackOrchestrator = {
   // --- Public Methods ---
 
   async play(track: MusicChallenge): Promise<void> {
-    const { showLoading, hideLoading } = useLoadingStore.getState();
     const { currentTrack, updateProgress, setCurrentTrack } = useMusicStore.getState();
+    let loadingShown = false;
 
     try {
       // 1. Guard: If same track, handle toggle
@@ -43,17 +42,16 @@ export const PlaybackOrchestrator = {
       }
 
       // 5. Slow Path: Show loading overlay and poll for duration
-      showLoading('Loading track...');
-      await this._pollForDuration(4500); 
-      hideLoading();
+      loadingShown = true;
+      //const duration = await this._pollForDuration(4500); 
+      loadingShown = false;
       
       await this._finalizeTrackStart(track, setCurrentTrack);
 
     } catch (err) {
-      hideLoading();
       console.error('Orchestrator Play Error:', err);
       throw err;
-    }
+    } 
   },
 
   async resume(): Promise<void> {
@@ -143,13 +141,14 @@ export const PlaybackOrchestrator = {
     setCurrentTrack(track);
   },
 
-  async _pollForDuration(timeout: number): Promise<void> {
+  async _pollForDuration(timeout: number): Promise<number> {
     const start = Date.now();
     while (Date.now() - start < timeout) {
       const { duration } = await TrackPlayer.getProgress();
-      if (duration > 0) return;
+      if (duration > 0) return duration;
       await new Promise(r => setTimeout(r, 100));
     }
-    throw new Error('Track duration timeout: Metadata failed to load.');
+    console.warn('Duration metadata not available, continuing without it.');
+    return 0;
   }
 };

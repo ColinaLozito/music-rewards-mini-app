@@ -18,7 +18,9 @@ export function usePlayerModal() {
     pause,
     resume,
     seekTo,
-    error
+    error,
+    isBuffering,
+    retry
   } = useMusicPlayer();
 
   const [isDragging, setIsDragging] = useState(false);
@@ -154,6 +156,8 @@ export function usePlayerModal() {
     displayPosition,
     progressBarWidth,
     progressBarRef,
+    isBuffering,
+    retry,
     
     progress: duration ? getProgress() : 0,
     challengeProgress: duration ? getChallengeProgress() : 0,
