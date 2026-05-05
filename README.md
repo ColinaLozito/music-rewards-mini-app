@@ -1,79 +1,97 @@
-# MusicRewards Test App
+# Music Reward mini App - React Native (Expo)
 
-This is the recommended project structure for the Belong React Native assessment. Use this as your starting point!
+A high-performance music application built with React Native and Expo, featuring background audio playback, lock screen controls, and a custom challenge-based progress persistence system.
 
-## 🚀 Setup Instructions
+## 🎵 Features
 
-This test-app folder contains the complete starter code structure for your MusicRewards implementation. Don't run setup commands from here - follow the main setup guide above.
+### Core Gameplay
+- **Challenge List**: Display a list of music tracks to complete listening challenges
+- **Points System**: Earn points after completing challenges (points awarded at 98% threshold)
+- **Achievement Badges**: Unlock achievements by reaching different levels of earned points
+- **Anti-Cheat Protection**: Progress bar is non-interactable until challenge is completed
+- **Resume Later**: If challenge started but not completed, progress is saved and can be resumed later
+- **Replay**: Once completed, revisit songs and manage playback freely
 
-**Quick Reference:**
+### Audio Experience
+- **Background Audio**: Music continues playing when app is minimized or screen is locked (iOS `audio` background mode)
+- **Mini Player**: Bottom bar appears when track is playing for easy control without opening full player
+- **Lock Screen Controls**: Play/pause/seek from iOS Lock Screen and Control Center
+- **Hybrid Loading**: Smart detection (500ms fast-path) with loading overlay for slow networks
+- **Audio Interruption Handling**: Auto-pause on phone calls, ducking for notifications
+
+### Technical Highlights
+- **Single Responsibility**: `useMusicPlayer.ts` (65 lines) acts as glue only
+- **Singleton Services**: `PlaybackOrchestrator.ts` handles playback orchestration
+- **Global Persistence**: `useTrackPersistence.ts` tracks progress in background
+- **Data-Driven UI**: Achievements and challenge progress lists are reusable components
+- **Glassmorphism Design**: Consistent glass card/button components with blur effects
+- **Zustand Stores**: Persistent state management with selector pattern for performance
+
+---
+
+## 🚀 Getting Started
+
+Follow these steps to set up the development environment and run the application.
+
+### 1. Prerequisites
+- **Node.js** (LTS version recommended)
+- **Watchman** (for macOS users)
+- **Xcode** (for iOS development)
+- **CocoaPods** (`sudo gem install cocoapods`)
+
+### 2. Installation
+First, clone the repository and install the necessary dependencies:
+
 ```bash
-# From the parent react-native/ folder:
-cp -r test-app ~/MusicRewards
-cd ~/MusicRewards
-npx create-expo-app . --template typescript
+# Install project dependencies
 npm install
-npx expo start
+
+# Install iOS native dependencies
+npx pod-install
+
+``` 
+### 2. Running the App
+To launch the application on the iOS Simulator:
+
+# Run on iOS Simulator
+```bash
+npx expo run:ios
 ```
 
-## 📁 Project Structure
+Tip: If you encounter unexpected behavior or cache issues with Metro Bundler, restart with the clear cache flag:
 
-This structure follows Belong's mobile app architecture patterns:
-
+```bash
+npx expo start -c
 ```
-src/
-├── app/                    # Expo Router pages
-│   ├── (tabs)/
-│   │   ├── index.tsx       # Home screen with challenge list
-│   │   ├── profile.tsx     # Profile with user progress
-│   │   └── _layout.tsx     # Tab navigation setup
-│   ├── (modals)/
-│   │   ├── player.tsx      # Full-screen audio player
-│   │   └── _layout.tsx     # Modal navigation setup
-│   └── _layout.tsx         # Root layout
-├── components/
-│   ├── ui/                 # Glass design system components
-│   │   ├── GlassCard.tsx
-│   │   ├── GlassButton.tsx
-│   │   └── PointsCounter.tsx
-│   └── challenge/          # Challenge-specific components
-│       ├── ChallengeCard.tsx
-│       └── ChallengeList.tsx
-├── hooks/                  # Business logic hooks
-│   ├── useMusicPlayer.ts
-│   ├── usePointsCounter.ts
-│   └── useChallenges.ts
-├── stores/                 # Zustand stores
-│   ├── musicStore.ts
-│   └── userStore.ts
-├── services/               # External services
-│   └── audioService.ts
-├── constants/              # Theme and configuration
-│   └── theme.ts
-└── types/                  # TypeScript definitions
-    └── index.ts
+## 📱 Testing on a Real Device (iOS)
+
+Testing on a real device is crucial to verify **Background Audio** and **Lock Screen Controls**, as simulators often have limitations with native background modes.
+
+### Option A: Development Build (Recommended)
+This is the most reliable way to test native modules like `react-native-track-player`.
+
+1. **Connect your iPhone** to your Mac via USB.
+2. **Open the project in Xcode**: Navigate to the `ios` folder and open `.xcworkspace`.
+3. **Configure Signing**: 
+   - Select the project in the left sidebar.
+   - Go to **Signing & Capabilities**.
+   - Select your Development Team.
+4. **Run from Terminal**:
+```bash
+   npx expo run:ios --device
 ```
 
-## 🎵 Audio Files
+### Option B: Expo Go (Limited)
+Note: Since this project uses custom native code (TrackPlayer), Expo Go may not support all features. A development build is preferred.
 
-The assessment uses these pre-hosted tracks:
-- **Track 1:** Camo & Krooked - All Night (3:39, 150 points)
-- **Track 2:** Roni Size - New Forms (7:44, 300 points)
+1. Install the Expo Go app from the App Store.
+2. Ensure your phone and computer are on the same Wi-Fi network.
+3. Start the server: npx expo start.
+4. Scan the QR code with your iPhone camera.
 
-URLs and sample data are in [`../assets/audio/README.md`](../assets/audio/README.md)
+📄 License
+This project is private and confidential.
 
-## 🎯 Implementation Order
-
-1. **Set up basic navigation structure**
-2. **Create Zustand stores (musicStore.ts, userStore.ts)**
-3. **Build glass design components (GlassCard, GlassButton)**
-4. **Implement useMusicPlayer hook with TrackPlayer**
-5. **Create challenge list and player modal UI**
-6. **Add points counter and progress tracking**
-7. **Test on both platforms and add error handling**
-
-## 📖 Reference
-
-See the main [README.md](../README.md) for detailed technical requirements and evaluation criteria.
-
-Good luck! 🚀🎵
+### Notas adicionales para tu configuración:
+*   **`.gitignore`**: Asegúrate de que el archivo que definimos anteriormente esté aplicado para que al hacer el `npm install` y el `npx expo run:ios`, no intentes subir accidentalmente la carpeta `ios/Pods` o los binarios generados.
+*   **Bundle Identifier**: Si es la primera vez que corres en un dispositivo real, Xcode te pedirá un "Bundle Identifier" único. Puedes cambiarlo en la pestaña de *General* dentro de Xcode.
