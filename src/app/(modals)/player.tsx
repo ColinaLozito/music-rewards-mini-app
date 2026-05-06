@@ -127,6 +127,16 @@ export default function PlayerModal() {
           </View>
         </GlassCard>
 
+        {/* Completion Card - shown when challenge is completed */}
+        {displayChallenge?.completed && (
+          <GlassCard style={styles.completionCard}>
+            <View style={styles.completionRow}>
+              <Text style={styles.completionText}>Challenge completed</Text>
+              <Image source={icons.badge} style={styles.completionBadge} />
+            </View>
+          </GlassCard>
+        )}
+
         {/* Challenge Progress */}
         <GlassCard style={styles.challengeCard}>
           <View style={styles.pointsRow}>

@@ -38,14 +38,14 @@ export const ChallengeCard = React.memo<ChallengeCardProps>(({
   }, [onPress, challenge]);
 
   const handleButtonPress = React.useCallback(() => {
-    if (isPlaying && onPause) {
+    if (isCurrentTrack && isPlaying && onPause) {
       onPause();
-    } else if (!isPlaying && isCurrentTrack && onResume) {
+    } else if (isCurrentTrack && !isPlaying && onResume) {
       onResume();
     } else {
       onPreload(challenge);
     }
-  }, [isPlaying, isCurrentTrack, onPause, onResume, onPreload, challenge]);
+  }, [isCurrentTrack, isPlaying, onPause, onResume, onPreload, challenge]);
 
   const cardStyle = React.useMemo(() => {
     if (isCurrentTrack) {
