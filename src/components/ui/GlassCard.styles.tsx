@@ -17,4 +17,8 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: THEME.colors.border,
   },
+  backgroundImage: { // <- NEW: fill card without changing aspect ratio
+    ...StyleSheet.absoluteFillObject,
+    opacity: 0.3, // <- 0.3 opacity
+  },
 });

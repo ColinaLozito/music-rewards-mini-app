@@ -6,6 +6,7 @@ const icons = {
   rewind: require('../../assets/icons/rewind_icon.png'),
   home: require('../../assets/icons/home_icon.png'),
   profile: require('../../assets/icons/profile_icon.png'),
+  badge: require('../../assets/icons/badge_icon.png'),
 };
 
 export default icons;

@@ -8,106 +8,37 @@ Expo Router + React Native app for music challenge rewards. Users complete liste
 ## Directory Structure
 ```
 src/
-├── app/                                   # Expo Router screens
-│   ├── _layout.tsx                        # Root layout (ToastContainer, LoadingOverlay, usePathname)
-│   ├── (tabs)/
-│   │   ├── index.tsx                      # Home screen (ChallengeList)
-│   │   ├── index.styles.tsx               # Home screen styles
-│   │   ├── profile.tsx                    # User progress + stats
-│   │   ├── profile.styles.tsx              # Profile screen styles
-│   │   └── _layout.tsx                    # Tabs layout config
-│   └── (modals)/
-│       ├── player.tsx                     # Full-screen player (UI)
-│       ├── player.styles.tsx               # Player screen styles
-│       └── _layout.tsx                    # Modal config (ToastContainer)
+├── app/                                   # Expo Router screens & layouts
+│   ├── (tabs)/                             # Tab navigation screens
+│   └── (modals)/                           # Modal screens
 │
 ├── components/                            # Reusable + feature components
-│   ├── ErrorBoundary.tsx                  # Global error boundary
-│   ├── ErrorBoundary.styles.tsx          # Error boundary styles
-│   ├── ui/                                # Reusable UI components
-│   │   ├── GlassCard.tsx                  # Glassmorphism card
-│   │   ├── GlassCard.styles.tsx           # GlassCard styles
-│   │   ├── GlassButton.tsx                # Glassmorphism button
-│   │   ├── GlassButton.styles.tsx          # GlassButton styles
-│   │   ├── RoundedIconButton.tsx          # Circular icon button
-│   │   ├── RoundedIconButton.styles.tsx     # RoundedIconButton styles
-│   │   ├── AudioProgressBar.tsx           # Reusable progress bar
-│   │   ├── AudioProgressBar.styles.tsx      # AudioProgressBar styles
-│   │   ├── MiniPlayer.tsx                 # Bottom bar (playing state)
-│   │   ├── MiniPlayer.styles.tsx           # MiniPlayer styles
-│   │   ├── LoadingOverlay.tsx             # Global loading overlay
-│   │   ├── LoadingOverlay.styles.tsx        # LoadingOverlay styles
-│   │   ├── AchievementBadge.tsx           # Achievement badge (reusable)
-│   │   ├── AchievementBadge.styles.tsx     # AchievementBadge styles
-│   │   ├── PointsCounter.tsx              # Points counter UI
-│   │   ├── PointsCounter.styles.tsx        # PointsCounter styles
-│   │   ├── Toast.tsx                     # Animated toast notification
-│   │   ├── Toast.styles.tsx                # Toast styles
-│   │   ├── ToastContainer.tsx              # Global toast container
-│   │   └── ToastContainer.styles.tsx        # ToastContainer styles
-│   ├── challenge/                         # Challenge-specific components
-│   │   ├── ChallengeCard.tsx              # Challenge card component
-│   │   ├── ChallengeCard.styles.tsx        # ChallengeCard styles
-│   │   ├── ChallengeList.tsx              # Challenge list component
-│   │   ├── ChallengeList.styles.tsx        # ChallengeList styles
-│   │   ├── ChallengeProgressList.tsx      # Reusable progress list
-│   │   ├── ChallengeProgressList.styles.tsx # ChallengeProgressList styles
-│   │   ├── DifficultyBadge.tsx             # Difficulty badge component
-│   │   └── DifficultyBadge.styles.tsx        # DifficultyBadge styles
-│   └── profile/                           # Profile-specific components
-│       ├── AchievementsList.tsx           # Data-driven achievements
-│       ├── AchievementsList.styles.tsx      # AchievementsList styles
-│       └── ChallengeProgressList.tsx      # Reusable progress list
+│   ├── ui/                                # Reusable UI components (GlassCard, RoundedIconButton, etc.)
+│   ├── challenge/                         # Challenge-specific components (ChallengeCard, ChallengeList, etc.)
+│   └── profile/                           # Profile-specific components (AchievementsList, etc.)
 │
 ├── hooks/                                 # Business logic hooks
-│   ├── useMusicPlayer.ts                  # Glue: TrackPlayer + Zustand + error handling
-│   ├── usePlayerModal.ts                  # Player modal logic (handlers, state)
-│   ├── useTrackPersistence.ts             # Progress sync + challenge completion
-│   ├── usePointsCounter.ts                # Points calculation (reactive)
-│   ├── useTrackPlayerInit.ts              # Player init + teardown
-│   └── useChallenges.ts                   # Challenge data loading
 │
 ├── services/                              # Singleton services (no React hooks)
-│   ├── PlaybackOrchestrator.ts            # Playback orchestration (singleton, NetInfo)
-│   ├── audioService.ts                    # TrackPlayer setup, addTrack, lock screen
-│   └── playbackService.ts                 # Headless service (remote events)
 │
 ├── stores/                                # Zustand state management
-│   ├── musicStore.ts                      # Player state (currentTrack, isPlaying)
-│   ├── userStore.ts                       # User data (progress, points, challenges)
-│   ├── toastStore.ts                      # Global toast notification state
-│   └── loadingStore.ts                    # Global loading overlay state
 │
 ├── types/                                 # TypeScript type definitions
-│   ├── index.ts                           # Global types (MusicChallenge, UseMusicPlayerReturn)
-│   ├── achievement.ts                     # Achievement types
-│   ├── musicChallenge.ts                  # Challenge type
-│   └── toast.ts                          # ToastType, Toast interfaces
 │
-├── constants/                             # Centralized data
-│   ├── theme.ts                           # Design tokens (colors, spacing, toast colors)
-│   ├── icons.ts                           # Centralized icon imports
-│   ├── achievements.ts                    # Achievement definitions (data-driven)
-│   ├── challenges.ts                      # Sample challenge data
-│   └── profileConstants.ts                # Profile-related constants
+├── constants/                             # Centralized data (theme, icons, achievements, etc.)
 │
 └── utils/                                 # Pure utility functions
-    ├── pointsCalculator.ts                # Points math
-    ├── timeFormat.ts                      # Duration formatting
-    ├── toast.ts                           # Helper: toast.success/warning/error
-    ├── urlAudioValidator.ts                # Audio URL validation
-    └── challengeHelpers.ts                 # Challenge helper functions
-```
 
 ---
 
 ## Design Decisions
 
 ### 1. Single Responsibility Principle (SRP)
-- `useMusicPlayer.ts`: 267→65 lines (glue only)
-- `PlaybackOrchestrator.ts`: Singleton service (no hooks)
-- `useTrackPersistence.ts`: Global progress sync + completion
-- `usePointsCounter.ts`: Reactive points calculation
+- `useMusicPlayer.ts`: Thin glue hook (65 lines) - bridges TrackPlayer hooks ↔ store + error handling
+- `PlaybackOrchestrator.ts`: Singleton service (no hooks) - playback orchestration, network listener, track lifecycle
+- `useTrackPersistence.ts`: Progress sync (5s throttle) + challenge completion (98% threshold)
+- `usePlayerModal.ts`: Player modal logic - seek, drag, play/pause, restart, progress calculation
+- `useTrackPlayerInit.ts`: Init + teardown - kills zombie player on JS reload
 
 ### 2. Container/Presenter Pattern
 - `player.tsx` (UI) + `usePlayerModal.ts` (logic)
@@ -123,6 +54,272 @@ src/
 - `constants/icons.ts`: All icon imports (avoid require() in components)
 - `constants/theme.ts`: Design tokens (colors, spacing, fonts)
 - `assets.d.ts`: TypeScript declarations for images
+
+---
+
+## Business Logic Analysis
+
+### Hooks (`src/hooks/`)
+
+**useMusicPlayer.ts**
+- Glue layer: TrackPlayer hooks → store sync, error handling, buffering detection
+- Dependencies: `react-native-track-player`, `PlaybackOrchestrator`, `musicStore`
+- Returns: `play`, `pause`, `resume`, `seekTo`, `retry`, `isBuffering`, `error`
+
+**usePlayerModal.ts**
+- Player modal state: seek, drag, play/pause, restart, progress calculation
+- Dependencies: `useMusicPlayer`, `musicStore`, `userStore`
+- Returns: `progress`, `challengeProgress`, `displayChallenge`, `isCompleted`, handlers
+
+**useTrackPersistence.ts**
+- Progress sync (5s throttle) → `listenedTimeMap`
+- Challenge completion check (≥98%) → `markChallengeComplete` + `completeChallenge` + award points
+- Dependencies: `react-native-track-player`, `musicStore`, `userStore`
+
+**useTrackPlayerInit.ts**
+- Init TrackPlayer + teardown zombie player on JS reload
+- Dependencies: `audioService`, `playbackService`
+
+**Flow:**
+```
+useTrackPlayerInit (mount)
+  ↓
+useMusicPlayer (play/pause/resume + error handling)
+  ↓
+useTrackPersistence (progress sync every 5s → listenedTimeMap)
+  ↓
+useTrackPersistence (completion check ≥98% → markComplete + award points)
+```
+
+---
+
+### Lifecycle Flowchart
+
+```mermaid
+flowchart TD
+    subgraph Mounting["1. Mounting"]
+        A[App Launch] --> B[useTrackPlayerInit]
+        B --> C[teardownTrackPlayerForJsReload]
+        C --> D[setupTrackPlayer]
+        D --> E[TrackPlayer Ready]
+    end
+
+    subgraph ProgressSync["2. Progress Sync (5s throttle)"]
+        F[TrackPlayer.getProgress] --> G{position > 0?}
+        G -->|Yes| H[useTrackPersistence]
+        H --> I{seconds - lastSynced >= 5?}
+        I -->|Yes| J[updateMaxListenedTime(id, position)]
+        J --> K[musicStore: updateProgress(id, progress%)]
+        I -->|No| L[Skip update]
+    end
+
+    subgraph Persistence["3. Persistence (Zustand persist middleware)"]
+        M[musicStore changes] --> N{partialize filter}
+        N -->|challenges only| O[AsyncStorage: 'music-store']
+        P[userStore changes] --> Q{partialize filter}
+        Q -->|completedChallenges, listenedTimeMap, awardedChallenges| R[AsyncStorage: 'user-store']
+    end
+
+    Mounting --> ProgressSync
+    ProgressSync --> Persistence
+```
+
+### Services (`src/services/`)
+
+**PlaybackOrchestrator.ts** (Singleton)
+- `play(track)`: Save prev progress → reset → addTrack → hybrid duration load (500ms fast-path) → waitForPlaybackStart (8s timeout)
+- `resume()`: Check if finished (≥98%) → seekTo(0) or play
+- `pause()`: TrackPlayer.pause()
+- `_startNetworkListener()`: NetInfo listener → auto-resume on reconnect, remount on network return
+
+**audioService.ts** (Utilities)
+- TrackPlayer setup (iOS category: Playback, AllowBluetooth, AllowAirPlay)
+- `addTrack()`: URL validation + add to queue
+- `updateLockScreenControls()`: Sync capabilities with completion state
+
+**playbackService.ts** (Headless)
+- Remote events: Play/Pause, Duck, Stop, PlaybackQueueEnded, PlaybackError
+- Registered at module level in `useTrackPlayerInit.ts`
+
+### Stores (`src/stores/`)
+
+**musicStore.ts** (Persisted: `challenges[]`)
+- State: `currentTrack`, `isPlaying`, `challenges[]`
+- Actions: `setCurrentTrack`, `setIsPlaying`, `updateProgress`, `markChallengeComplete`
+- Note: Does NOT persist playback state (`currentTrack`, `isPlaying`)
+
+**userStore.ts** (Persisted: `completedChallenges`, `listenedTimeMap`, `awardedChallenges`)
+- State: `completedChallenges[]`, `listenedTimeMap{}`, `awardedChallenges{}`
+- Actions: `completeChallenge`, `updateMaxListenedTime`, `recordAward`
+- Note: Does NOT persist derived `totalPoints` (calculated from `awardedChallenges`)
+
+**toastStore.ts** (Not persisted)
+- State: `toasts[]`
+- Actions: `showToast`, `dismissToast`
+
+**loadingStore.ts** (Not persisted)
+- State: `visible`, `message`
+- Actions: `showLoading`, `hideLoading`
+
+### Utils (`src/utils/`)
+
+**toast.ts**
+- Helper: `toast.success/warning/error` → calls `toastStore.showToast()`
+
+**urlAudioValidator.ts**
+- HEAD request with 2s timeout → validates audio URL before playback
+
+**challengeHelpers.ts**
+- Pure functions: `formatDuration()`, `getButtonTitle()`
+
+**timeFormat.ts**
+- Duration formatting (seconds → mm:ss)
+
+**pointsCalculator.ts**
+- Points math (deprecated, now in `usePointsCounter.ts`)
+
+---
+
+### Data Structure Example (API Contract)
+
+**JSON representation of stores when 2 challenges are active:**
+
+```json
+{
+  "musicStore": {
+    "challenges": [
+      {
+        "id": "challenge-1",
+        "title": "Summer Vibes",
+        "artist": "DJ Sunshine",
+        "duration": 180,
+        "points": 100,
+        "audioUrl": "https://example.com/track1.mp3",
+        "completed": false,
+        "progress": 45.5,
+        "completedAt": null
+      },
+      {
+        "id": "challenge-2",
+        "title": "Night Drive",
+        "artist": "Synthwave Co",
+        "duration": 240,
+        "points": 150,
+        "audioUrl": "https://example.com/track2.mp3",
+        "completed": true,
+        "progress": 100,
+        "completedAt": "2026-05-06T10:30:00Z"
+      }
+    ],
+    "currentTrack": {
+      "id": "challenge-1",
+      "title": "Summer Vibes",
+      "artist": "DJ Sunshine",
+      "duration": 180,
+      "points": 100,
+      "audioUrl": "https://example.com/track1.mp3",
+      "completed": false,
+      "progress": 45.5
+    },
+    "isPlaying": true,
+    "currentPosition": 81.5
+  },
+  "userStore": {
+    "completedChallenges": ["challenge-2"],
+    "listenedTimeMap": {
+      "challenge-1": 81.5,
+      "challenge-2": 240
+    },
+    "awardedChallenges": {
+      "challenge-2": 150
+    }
+  }
+}
+```
+
+**API Contract Explanation:**
+
+| Field | Source | Purpose |
+|-------|--------|---------|
+| `MusicChallenge` | `constants/challenges.ts` or API | Remote track data with `audioUrl`, `duration`, `points` |
+| `listenedTimeMap` | `TrackPlayer.getProgress().position` | Local progress: `challengeId` → `maxSecondsListened` |
+| `progress` (in store) | Calculated: `(listenedTime / duration) * 100` | 0-100% for UI display |
+| `completed` | Set when `progress >= 98%` | Prevents re-awarding points |
+| `awardedChallenges` | Set on completion | `challengeId` → `points` (prevents duplicate awards) |
+
+**Flow:**
+1. TrackPlayer plays → `useTrackPersistence` reads `position` every 5s
+2. `updateMaxListenedTime(id, position)` → writes to `listenedTimeMap`
+3. `updateProgress(id, (position/duration)*100)` → writes to `challenge.progress`
+4. When `progress >= 98%` → `markChallengeComplete()` + `completeChallenge()` + `recordAward()`
+
+---
+
+## State Flow Diagram
+
+```mermaid
+flowchart TD
+    User[User Action] --> UI[ChallengeCard / MiniPlayer / Player Modal]
+    UI --> Hooks[useMusicPlayer / usePlayerModal]
+    Hooks --> Orchestrator[PlaybackOrchestrator]
+    Hooks --> Store[musicStore / userStore]
+    
+    Orchestrator --> TrackPlayer[react-native-track-player]
+    TrackPlayer --> Service[playbackService - remote events]
+    
+    Hooks --> Persistence[useTrackPersistence]
+    Persistence -->|5s throttle| Store
+    Persistence -->|≥98%| Store[markChallengeComplete + completeChallenge]
+    Persistence -->|complete| Store[award points via recordAward]
+    
+    Store -->|selector| UI
+    Store -->|persist| AsyncStorage
+```
+
+---
+
+## Prefetching & Mounting Sequence
+
+```mermaid
+sequenceDiagram
+    participant Screen as ChallengeScreen
+    participant Card as ChallengeCard
+    participant Orchestrator as PlaybackOrchestrator
+    participant Store as musicStore
+    participant TP as TrackPlayer
+    participant Modal as PlayerModal
+
+    Note over Screen,Modal: Preloading Flow (RoundedIconButton)
+    Card->>Orchestrator: onPreload(challenge)
+    Orchestrator->>TP: setupTrackPlayer()
+    Orchestrator->>TP: reset() + addTrack()
+    Note over Orchestrator: Hybrid Load: 500ms fast-path
+    Orchestrator->>TP: play()
+    TP-->>Orchestrator: PlaybackState = Playing
+    Orchestrator->>Store: setCurrentTrack(challenge) [HYDRATION]
+    Note over Store: currentTrack now set (MiniPlayer appears)
+    Orchestrator->>Store: setIsPlaying(true)
+
+    Note over Screen,Modal: Navigation Flow (Card Press)
+    Card->>Screen: onPress(challenge)
+    Screen->>Store: selectCurrentTrack (check id)
+    alt Same track playing
+        Screen->>Modal: router.push('/(modals)/player')
+    else Different track
+        Screen->>Orchestrator: play(challenge)
+        Orchestrator->>Store: setCurrentTrack(challenge) [HYDRATION]
+        Screen->>Modal: router.push('/(modals)/player')
+    end
+
+    Note over Modal: Player Modal Reads Store
+    Modal->>Store: selectCurrentTrack (selector)
+    Modal->>Store: selectChallenges (selector)
+    Modal->>TP: useProgress() [read position]
+```
+
+**Key Insight:** Data is "hydrated" into `musicStore.currentTrack` BEFORE `router.push()` via `setCurrentTrack()`. This allows:
+- MiniPlayer to appear immediately after preload button press
+- Player Modal to read `currentTrack` from store upon mount (no loading flash)
 
 ---
 
@@ -196,6 +393,71 @@ graph TD
 ---
 
 ## State Management
+
+### State Schema Diagram (classDiagram)
+
+```mermaid
+classDiagram
+    class MusicChallenge {
+        +id: string
+        +title: string
+        +artist: string
+        +duration: number
+        +points: number
+        +audioUrl: string
+        +completed: boolean
+        +progress: number
+        +completedAt: string
+    }
+
+    class musicStore {
+        -challenges: MusicChallenge[]
+        -currentTrack: MusicChallenge
+        -isPlaying: boolean
+        -currentPosition: number
+        +setCurrentTrack(track)
+        +updateProgress(id, progress)
+        +markChallengeComplete(id)
+        +setIsPlaying(playing)
+        +setCurrentPosition(pos)
+    }
+
+    class userStore {
+        -completedChallenges: string[]
+        -listenedTimeMap: Record~string,number~
+        -awardedChallenges: Record~string,number~
+        +completeChallenge(id)
+        +updateMaxListenedTime(id, pos)
+        +recordAward(id, points)
+    }
+
+    class TrackPlayerState {
+        +playbackState: State
+        +position: number
+        +duration: number
+    }
+
+    musicStore "1" --> "*" MusicChallenge : stores
+    userStore --> musicStore : reads challenge.id
+    TrackPlayerState --> musicStore : maps to currentTrack
+    musicStore --> userStore : challenge completion
+```
+
+**Selectors (Read):**
+- `selectCurrentTrack`: reads `musicStore.currentTrack`
+- `selectChallenges`: reads `musicStore.challenges`
+- `selectCompletedChallenges`: reads `userStore.completedChallenges`
+- `selectListenedTimeMap`: reads `userStore.listenedTimeMap`
+
+**Actions (Write):**
+- `setCurrentTrack()`: writes `musicStore.currentTrack`
+- `updateProgress()`: writes `musicStore.challenges[].progress`
+- `markChallengeComplete()`: writes `musicStore.challenges[].completed`
+- `completeChallenge()`: writes `userStore.completedChallenges[]`
+- `updateMaxListenedTime()`: writes `userStore.listenedTimeMap`
+- `recordAward()`: writes `userStore.awardedChallenges`
+
+---
 
 ### `musicStore.ts` (Player State)
 - `currentTrack: MusicChallenge | null`

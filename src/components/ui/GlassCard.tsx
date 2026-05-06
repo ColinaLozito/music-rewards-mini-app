@@ -3,11 +3,13 @@ import React from 'react';
 import { 
   View, 
   ViewStyle, 
+  Image,
+  ImageStyle,
 } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { THEME } from '../../theme/theme';
-import { styles } from './GlassCard.styles'
+import { styles } from './GlassCard.styles';
 
 // Glass Card Component
 interface GlassCardProps {
@@ -16,6 +18,7 @@ interface GlassCardProps {
   borderRadius?: number;
   style?: ViewStyle;
   gradientColors?: readonly string[];
+  backgroundImage?: string; // <-- NEW: artwork URL
 }
 
 export const GlassCard: React.FC<GlassCardProps> = ({
@@ -23,6 +26,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   blurIntensity = THEME.glass.blurIntensity,
   borderRadius = THEME.borderRadius.md,
   gradientColors = THEME.glass.gradientColors.card,
+  backgroundImage, // <-- NEW
   style,
 }) => {
     const containerStyle = React.useMemo(() => {
@@ -37,6 +41,14 @@ export const GlassCard: React.FC<GlassCardProps> = ({
 
     return (
       <View style={containerStyle}>
+        {backgroundImage && (
+          <Image 
+            source={{ uri: backgroundImage }}
+            style={[styles.backgroundImage, { borderRadius }] as ImageStyle}
+            resizeMode="cover"
+          />
+        )}
+        
         <BlurView 
           intensity={blurIntensity} 
           style={styles.absoluteFill}

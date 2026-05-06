@@ -72,7 +72,10 @@ export const useTrackPersistence = () => {
         
         // Dismiss modal FIRST (toast lives in root layout, persists after dismiss)
         useMusicStore.getState().setCurrentTrack(null);
-        router.back();
+        // Only go back if we're in a modal (canGoBack check)
+        if (router.canGoBack()) {
+          router.back();
+        }
         
         // Delay toast to ensure modal fully unmounts (400ms)
         setTimeout(() => {

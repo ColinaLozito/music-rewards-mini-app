@@ -1,17 +1,18 @@
 // Player modal - Full-screen audio player (Expo Router modal)
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { 
   View, 
   Text, 
   SafeAreaView,
   Alert,
+  ScrollView,
+  Image,
 } from 'react-native';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { RoundedIconButton } from '../../components/ui/RoundedIconButton';
 import { PointsCounter } from '../../components/ui/PointsCounter';
 import { AudioProgressBar } from '../../components/ui/AudioProgressBar';
 import { usePlayerModal } from '../../hooks/usePlayerModal';
-import { THEME } from '../../theme/theme';
 import { styles } from './player.styles';
 import icons from '../../constants/icons';
 
@@ -26,7 +27,6 @@ export default function PlayerModal() {
     duration,
     displayPosition,
     progress,
-    challengeProgress,
     handlePlayPause,
     handleRestart,
     handleSeek,
@@ -39,11 +39,6 @@ export default function PlayerModal() {
       Alert.alert('Playback Error', error);
     }
   }, [error]);
-
-  const challengeStatusStyle = useMemo(() => ({
-    ...styles.challengeStatus,
-    color: displayChallenge?.completed ? THEME.colors.secondary : THEME.colors.accent
-  }), [displayChallenge?.completed]);
 
   if (error && !displayChallenge) {
     return (
@@ -64,42 +59,26 @@ export default function PlayerModal() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
-        {/* Track Info */}
-        <GlassCard style={styles.trackInfoCard}>
-          <Text style={styles.trackTitle}>{displayChallenge.title}</Text>
-          <Text style={styles.trackArtist}>{displayChallenge.artist}</Text>
-          <Text style={styles.trackDescription}>{displayChallenge.description}</Text>
-          
-          <View style={styles.pointsContainer}>
-            <Text style={styles.pointsLabel}>Challenge Points</Text>
-            <Text style={styles.pointsValue}>{displayChallenge.points}</Text>
-          </View>
-        </GlassCard>
-
-        {/* Buffering Indicator */}
-        {isBuffering && (
-          <GlassCard style={styles.bufferingCard}>
-            <Text style={styles.bufferingText}>Buffering...</Text>
-          </GlassCard>
-        )}
-
-        {/* Challenge Progress */}
-        <GlassCard style={styles.challengeCard}>
-          <View style={styles.challengeInfo}>
-            <Text style={challengeStatusStyle}>
-              {displayChallenge.completed ? '✅ Completed' : '🎧 In Progress'}
-            </Text>
-            <Text style={styles.challengeProgress}>
-              {Math.round(challengeProgress)}% of challenge complete
-            </Text>
-          </View>
-        </GlassCard>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Artwork Square */}
+        <Image 
+          source={{ uri: displayChallenge?.artwork }}
+          style={styles.artworkImage}
+          resizeMode="cover"
+        />
 
         {/* Player Section */}
         <GlassCard style={styles.progressCard}>
-          <Text style={styles.progressLabel}>Listening Progress</Text>
-          
+          {/* Replace Listening Progress with 2 rows */}
+          <View style={styles.trackInfoRows}>
+            <Text style={styles.trackTitleSmall}>{displayChallenge.title}</Text>
+            <Text style={styles.trackArtistXs}>{displayChallenge.artist}</Text>
+          </View>
+
           {/* Progress Bar or Buffering */}
           {isBuffering ? (
             <Text style={styles.bufferingText}>Loading track...</Text>
@@ -148,13 +127,41 @@ export default function PlayerModal() {
           </View>
         </GlassCard>
 
+        {/* Completion Card - shown when challenge is completed */}
+        {displayChallenge?.completed && (
+          <GlassCard style={styles.completionCard}>
+            <View style={styles.completionRow}>
+              <Text style={styles.completionText}>Challenge completed</Text>
+              <Image source={icons.badge} style={styles.completionBadge} />
+            </View>
+          </GlassCard>
+        )}
+
+        {/* Challenge Progress */}
+        <GlassCard style={styles.challengeCard}>
+          <View style={styles.pointsRow}>
+            <Text style={styles.pointsLabelSm}>Challenge Points</Text>
+            <Text style={styles.pointsValueXs}>
+              {displayChallenge.points}
+            </Text>
+          </View>
+        </GlassCard>
+
         {/* Points Counter */}
          <PointsCounter
           totalPoints={displayChallenge.points}
           durationSeconds={displayChallenge.duration}
           challengeId={displayChallenge.id}
          />
-      </View>
+
+        {/* Description */}
+        <GlassCard style={styles.descriptionCard}>
+          <Text style={styles.descriptionText}>
+            {displayChallenge.description}
+          </Text>
+        </GlassCard>
+      </ScrollView>
     </SafeAreaView>
   );
 }
+  

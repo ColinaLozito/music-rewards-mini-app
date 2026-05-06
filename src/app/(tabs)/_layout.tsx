@@ -33,6 +33,7 @@ export default function TabLayout() {
         options={{
           title: 'Challenges',
           tabBarIcon: () => <TabIcon icon={icons.home} />,
+          headerShown: false
         }}
       />
       <Tabs.Screen
@@ -40,6 +41,7 @@ export default function TabLayout() {
         options={{
           title: 'Profile',
           tabBarIcon: () => <TabIcon icon={icons.profile} />,
+          headerShown: false
         }}
       />
     </Tabs>

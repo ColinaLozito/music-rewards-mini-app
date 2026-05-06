@@ -6,7 +6,7 @@ export const styles = StyleSheet.create({
     marginBottom: THEME.spacing.xs,
   },
   background: {
-    height: THEME.spacing.xs,
+    height: THEME.spacing.sm,
     backgroundColor: THEME.colors.progressBackground,
     borderRadius: THEME.borderRadius.sm,
     overflow: 'hidden',

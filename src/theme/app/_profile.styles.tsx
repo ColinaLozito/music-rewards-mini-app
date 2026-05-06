@@ -7,6 +7,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: THEME.colors.background,
     paddingHorizontal: THEME.spacing.md,
+    paddingTop: THEME.spacing.lg
   },
   header: {
     fontSize: THEME.fonts.sizes.xxl,

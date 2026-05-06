@@ -1,7 +1,7 @@
 // ChallengeList component - Extracted FlatList from Home screen
 
-import React, { useCallback } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { ChallengeCard } from './ChallengeCard';
 import { useUserStore } from '../../stores/userStore';
 import type { MusicChallenge } from '../../types';
@@ -13,14 +13,20 @@ interface ChallengeListProps {
   challenges: MusicChallenge[];
   currentTrackId?: string | null;
   isPlaying: boolean;
-  onPlayChallenge: (challenge: MusicChallenge) => void;
+  onPreloadChallenge: (challenge: MusicChallenge) => void;
+  onResumeChallenge?: () => void;
+  onPauseChallenge?: () => void;
+  onPressChallenge: (challenge: MusicChallenge) => void;
 }
 
 export const ChallengeList = React.memo<ChallengeListProps>(({
   challenges,
   currentTrackId,
   isPlaying,
-  onPlayChallenge,
+  onPreloadChallenge,
+  onResumeChallenge,
+  onPauseChallenge,
+  onPressChallenge,
 }) => {
   const renderChallenge = useCallback(({ item }: { item: MusicChallenge }) => {
     // Get store data directly (avoids object deps in callback)
@@ -40,12 +46,24 @@ export const ChallengeList = React.memo<ChallengeListProps>(({
         challenge={item}
         earnedPoints={earnedPoints}
         progressPercentage={progressPercentage}
-        onPlay={onPlayChallenge}
+        onPreload={onPreloadChallenge}
+        onResume={onResumeChallenge}
+        onPause={onPauseChallenge}
+        onPress={onPressChallenge}
         isCurrentTrack={currentTrackId === item.id}
         isPlaying={isPlaying}
       />
     );
-  }, [onPlayChallenge, currentTrackId, isPlaying]);
+  }, [onPreloadChallenge, onResumeChallenge, onPauseChallenge, onPressChallenge, currentTrackId, isPlaying]);
+
+  const listHeader = useMemo(() => (
+    <View>
+      <Text style={styles.header}>Music Challenges</Text>
+      <Text style={styles.subtitle}>
+        Complete listening challenges to earn points and unlock achievements
+      </Text>
+    </View>
+  ), [])
 
   const getItemLayout = useCallback((_: any, index: number) => ({
     length: CHALLENGE_CARD_HEIGHT,
@@ -56,6 +74,7 @@ export const ChallengeList = React.memo<ChallengeListProps>(({
   return (
     <FlatList
       data={challenges}
+      ListHeaderComponent={listHeader}
       renderItem={renderChallenge}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.listContainer}

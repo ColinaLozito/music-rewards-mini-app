@@ -18,8 +18,8 @@ export default function ModalLayout() {
         <Stack.Screen
           name="player"
           options={{
-            title: "Now Playing",
             headerBackTitle: "Close",
+            headerShown: false
           }}
         />
       </Stack>
