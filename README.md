@@ -27,6 +27,15 @@ A high-performance music application built with React Native and Expo, featuring
 - **Glassmorphism Design**: Consistent glass card/button components with blur effects
 - **Zustand Stores**: Persistent state management with selector pattern for performance
 
+
+## DEMO IMAGES
+
+| | | |
+|:-------------------------:|:-------------------------:|:-------------------------:|
+| <img src="https://github.com/user-attachments/assets/930d9e3d-c024-44e4-bc44-a2dcdbcf527f" width="100%" /> | <img src="https://github.com/user-attachments/assets/487f9491-2c7b-4add-a935-b86dc111d513" width="100%" /> | <img src="https://github.com/user-attachments/assets/56341710-1c22-47f6-a0f2-000579713769" width="100%" /> |
+| <img src="https://github.com/user-attachments/assets/a0e09a16-17cb-421b-8f5c-d9c49294157e" width="100%" /> | <img src="https://github.com/user-attachments/assets/c665a3e8-fb03-449e-aeba-8bd2d3f2ab71" width="100%" /> | <img src="https://github.com/user-attachments/assets/76b50259-9206-4a87-943b-5f7dfbad1ab2" width="100%" /> |
+
+
 ---
 
 ## 🚀 Getting Started
