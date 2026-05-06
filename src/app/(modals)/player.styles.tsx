@@ -7,62 +7,36 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: THEME.colors.background,
   },
-  content: {
+  scrollView: {
     flex: 1,
+  },
+  scrollContent: {
     padding: THEME.spacing.lg,
-    justifyContent: 'space-between',
+    // Remove justifyContent: 'space-between'
   },
-  noTrackCard: {
-    margin: THEME.spacing.xl,
-    alignItems: 'center',
-  },
-  noTrackText: {
-    fontSize: THEME.fonts.sizes.xl,
-    fontWeight: 'bold',
-    color: THEME.colors.text.primary,
-    marginBottom: THEME.spacing.sm,
-  },
-  noTrackSubtext: {
-    fontSize: THEME.fonts.sizes.md,
-    color: THEME.colors.text.secondary,
-    textAlign: 'center',
-  },
-  trackInfoCard: {
-    alignItems: 'center',
-  },
-  trackTitle: {
-    fontSize: THEME.fonts.sizes.xxl,
-    fontWeight: 'bold',
-    color: THEME.colors.text.primary,
-    marginBottom: THEME.spacing.xs,
-  },
-  trackArtist: {
-    fontSize: THEME.fonts.sizes.lg,
-    color: THEME.colors.text.secondary,
-    marginBottom: THEME.spacing.md,
-  },
-  trackDescription: {
-    fontSize: THEME.fonts.sizes.sm,
-    color: THEME.colors.text.tertiary,
-    lineHeight: 20,
+  // Remove: trackInfoCard, trackTitle, trackArtist, trackDescription, pointsContainer
+  artworkImage: { // NEW: artwork image (full visible, no GlassCard)
+    width: '100%',
+    aspectRatio: 1, // Square
+    borderRadius: THEME.borderRadius.md,
     marginBottom: THEME.spacing.lg,
   },
-  pointsContainer: {
-    alignItems: 'center',
+  trackInfoRows: { // NEW: for progressCard header replacement
+    marginBottom: THEME.spacing.md,
   },
-  pointsLabel: {
+  trackTitleSmall: { // NEW: sm title in progressCard
     fontSize: THEME.fonts.sizes.sm,
-    color: THEME.colors.text.secondary,
-  },
-  pointsValue: {
-    fontSize: THEME.fonts.sizes.xl,
     fontWeight: 'bold',
-    color: THEME.colors.accent,
+    color: THEME.colors.text.primary,
+  },
+  trackArtistXs: { // NEW: xs artist in progressCard
+    fontSize: THEME.fonts.sizes.xs,
+    color: THEME.colors.text.secondary,
   },
   progressCard: {
     // Card styling handled by GlassCard
   },
-  progressLabel: {
+  progressLabel: { // Keep for reference, but not used
     fontSize: THEME.fonts.sizes.md,
     fontWeight: '600',
     color: THEME.colors.text.primary,
@@ -104,7 +78,7 @@ export const styles = StyleSheet.create({
   progressDisabled: {
     opacity: 0.5,
   },
-   controlButton: {
+  controlButton: {
     flex: 0.25,
     marginHorizontal: THEME.spacing.xs,
   },
@@ -135,7 +109,7 @@ export const styles = StyleSheet.create({
   challengeCard: {
     // Card styling handled by GlassCard
   },
-  challengeLabel: {
+  challengeLabel: { // Not used anymore, keep for safety
     fontSize: THEME.fonts.sizes.lg,
     fontWeight: 'bold',
     color: THEME.colors.text.primary,
@@ -144,7 +118,7 @@ export const styles = StyleSheet.create({
   challengeInfo: {
     alignItems: 'center',
   },
-  challengeStatus: {
+  challengeStatus: { // Remove: "In Progress" text
     fontSize: THEME.fonts.sizes.lg,
     fontWeight: 'bold',
     marginBottom: THEME.spacing.xs,
@@ -152,6 +126,21 @@ export const styles = StyleSheet.create({
   challengeProgress: {
     fontSize: THEME.fonts.sizes.sm,
     color: THEME.colors.text.secondary,
+  },
+  pointsRow: { // NEW: like PointsCounter
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: THEME.spacing.sm,
+  },
+  pointsLabelSm: { // NEW: sm label
+    fontSize: THEME.fonts.sizes.sm,
+    color: THEME.colors.text.secondary,
+  },
+  pointsValueXs: { // NEW: xs value
+    fontSize: THEME.fonts.sizes.lg,
+    fontWeight: 'bold',
+    color: THEME.colors.accent,
   },
   bufferingCard: {
     alignItems: 'center',
@@ -167,5 +156,12 @@ export const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: THEME.spacing.md,
+  },
+  descriptionCard: { // NEW: bottom description
+    marginTop: THEME.spacing.md,
+  },
+  descriptionText: { // NEW: full text, no truncation
+    fontSize: THEME.fonts.sizes.sm,
+    color: THEME.colors.text.tertiary,
   },
 });

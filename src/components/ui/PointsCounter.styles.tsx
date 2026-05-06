@@ -38,7 +38,7 @@ export const styles = StyleSheet.create({
     },
     infoRow: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
+      justifyContent: 'flex-end'
     },
     infoText: {
       fontSize: THEME.fonts.sizes.sm,

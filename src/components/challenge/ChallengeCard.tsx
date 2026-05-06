@@ -53,14 +53,15 @@ export const ChallengeCard = React.memo<ChallengeCardProps>(({
   }), [progressPercentage]);
 
   return (
-    <GlassCard
-      style={cardStyle}
-      gradientColors={
-        isCurrentTrack
-          ? THEME.glass.gradientColors.primary
-          : THEME.glass.gradientColors.card
-      }
-    >
+      <GlassCard
+        style={cardStyle}
+        gradientColors={
+          isCurrentTrack
+            ? THEME.glass.gradientColors.primary
+            : THEME.glass.gradientColors.card
+        }
+        backgroundImage={challenge.artwork} // <-- NEW: pass artwork URL
+      >
       <View style={styles.header}>
         <View style={styles.titleSection}>
           <Text style={styles.title}>{challenge.title}</Text>
