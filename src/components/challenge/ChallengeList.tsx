@@ -13,14 +13,20 @@ interface ChallengeListProps {
   challenges: MusicChallenge[];
   currentTrackId?: string | null;
   isPlaying: boolean;
-  onPlayChallenge: (challenge: MusicChallenge) => void;
+  onPreloadChallenge: (challenge: MusicChallenge) => void;
+  onResumeChallenge?: () => void;
+  onPauseChallenge?: () => void;
+  onPressChallenge: (challenge: MusicChallenge) => void;
 }
 
 export const ChallengeList = React.memo<ChallengeListProps>(({
   challenges,
   currentTrackId,
   isPlaying,
-  onPlayChallenge,
+  onPreloadChallenge,
+  onResumeChallenge,
+  onPauseChallenge,
+  onPressChallenge,
 }) => {
   const renderChallenge = useCallback(({ item }: { item: MusicChallenge }) => {
     // Get store data directly (avoids object deps in callback)
@@ -40,12 +46,15 @@ export const ChallengeList = React.memo<ChallengeListProps>(({
         challenge={item}
         earnedPoints={earnedPoints}
         progressPercentage={progressPercentage}
-        onPlay={onPlayChallenge}
+        onPreload={onPreloadChallenge}
+        onResume={onResumeChallenge}
+        onPause={onPauseChallenge}
+        onPress={onPressChallenge}
         isCurrentTrack={currentTrackId === item.id}
         isPlaying={isPlaying}
       />
     );
-  }, [onPlayChallenge, currentTrackId, isPlaying]);
+  }, [onPreloadChallenge, onResumeChallenge, onPauseChallenge, onPressChallenge, currentTrackId, isPlaying]);
 
   const getItemLayout = useCallback((_: any, index: number) => ({
     length: CHALLENGE_CARD_HEIGHT,

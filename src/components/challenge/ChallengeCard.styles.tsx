@@ -68,7 +68,8 @@ export const styles = StyleSheet.create({
     backgroundColor: THEME.colors.accent,
     borderRadius: 2,
   },
-  playButton: {
+  buttonContainer: {
+    alignItems: 'center',
     marginTop: THEME.spacing.sm,
   },
 });
