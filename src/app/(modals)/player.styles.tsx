@@ -164,4 +164,22 @@ export const styles = StyleSheet.create({
     fontSize: THEME.fonts.sizes.sm,
     color: THEME.colors.text.tertiary,
   },
+  completionCard: {
+    marginTop: THEME.spacing.md,
+  },
+  completionRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  completionText: {
+    fontSize: THEME.fonts.sizes.md,
+    fontWeight: 'bold',
+    color: THEME.colors.text.primary,
+  },
+  completionBadge: {
+    width: 32,
+    height: 32,
+    resizeMode: 'contain',
+  },
 });

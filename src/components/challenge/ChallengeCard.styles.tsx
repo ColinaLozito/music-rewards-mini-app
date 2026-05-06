@@ -16,6 +16,15 @@ export const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginBottom: THEME.spacing.sm,
   },
+  headerRight: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeIcon: {
+    width: 64,
+    height: 64,
+    resizeMode: 'contain',
+  },
   titleSection: {
     flex: 1,
     marginRight: THEME.spacing.sm,

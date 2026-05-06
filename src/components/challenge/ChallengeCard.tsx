@@ -1,6 +1,6 @@
 // ChallengeCard component - Individual challenge display
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { GlassCard } from '../ui/GlassCard';
 import { RoundedIconButton } from '../ui/RoundedIconButton';
 import { DifficultyBadge } from './DifficultyBadge';
@@ -80,7 +80,13 @@ export const ChallengeCard = React.memo<ChallengeCardProps>(({
             <Text style={styles.title}>{challenge.title}</Text>
             <Text style={styles.artist}>{challenge.artist}</Text>
           </View>
-          <DifficultyBadge difficulty={challenge.difficulty} />
+          <View style={styles.headerRight}>
+            {challenge.completed ? (
+              <Image source={icons.badge} style={styles.badgeIcon} />
+            ) : (
+              <DifficultyBadge difficulty={challenge.difficulty} />
+            )}
+          </View>
         </View>
 
         <Text style={styles.description} numberOfLines={2}>
