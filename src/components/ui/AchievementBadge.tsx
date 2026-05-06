@@ -10,7 +10,9 @@ interface AchievementBadgeProps {
 export const AchievementBadge = ({ icon, title, description }: AchievementBadgeProps) => (
   <View style={styles.badge}>
     <Text style={styles.icon}>{icon}</Text>
-    <Text style={styles.title}>{title}</Text>
-    <Text style={styles.description}>{description}</Text>
+    <View>
+      <Text style={styles.title}>{title}</Text>
+      <Text style={styles.description}>{description}</Text>
+    </View>
   </View>
 );

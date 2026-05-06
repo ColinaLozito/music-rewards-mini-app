@@ -4,7 +4,6 @@ import { THEME } from '../../theme/theme';
 
 export const styles = StyleSheet.create({
   achievementsCard: {
-    padding: THEME.spacing.lg,
     marginBottom: THEME.spacing.md,
   },
   sectionTitle: {

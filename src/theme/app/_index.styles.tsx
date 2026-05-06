@@ -9,17 +9,4 @@ export const styles = StyleSheet.create({
     paddingHorizontal: THEME.spacing.md,
     paddingTop: THEME.spacing.lg,
   },
-  header: {
-    fontSize: THEME.fonts.sizes.xxl,
-    fontWeight: 'bold',
-    color: THEME.colors.text.primary,
-    marginBottom: THEME.spacing.sm,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: THEME.fonts.sizes.sm,
-    color: THEME.colors.text.secondary,
-    textAlign: 'center',
-    marginBottom: THEME.spacing.lg,
-  },
 });

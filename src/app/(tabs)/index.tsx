@@ -1,5 +1,5 @@
 // Home screen - Challenge list (Expo Router)
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, Text } from 'react-native';
 import { router } from 'expo-router';
 import { ChallengeList } from '../../components/challenge/ChallengeList';
@@ -95,10 +95,6 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Music Challenges</Text>
-      <Text style={styles.subtitle}>
-        Complete listening challenges to earn points and unlock achievements
-      </Text>
       <ChallengeList
         challenges={challenges}
         currentTrackId={currentTrack?.id}

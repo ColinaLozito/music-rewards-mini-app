@@ -5,8 +5,7 @@ export const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: THEME.spacing.sm,
-    marginBottom: THEME.spacing.xs,
+    marginBottom: THEME.spacing.md,
   },
   icon: {
     fontSize: THEME.fonts.sizes.xl,
@@ -20,6 +19,5 @@ export const styles = StyleSheet.create({
   description: {
     fontSize: THEME.fonts.sizes.sm,
     color: THEME.colors.text.secondary,
-    marginLeft: THEME.spacing.sm,
   },
 });

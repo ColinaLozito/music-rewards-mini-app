@@ -1,7 +1,7 @@
 // ChallengeList component - Extracted FlatList from Home screen
 
-import React, { useCallback } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { FlatList, StyleSheet, Text, View } from 'react-native';
 import { ChallengeCard } from './ChallengeCard';
 import { useUserStore } from '../../stores/userStore';
 import type { MusicChallenge } from '../../types';
@@ -56,6 +56,15 @@ export const ChallengeList = React.memo<ChallengeListProps>(({
     );
   }, [onPreloadChallenge, onResumeChallenge, onPauseChallenge, onPressChallenge, currentTrackId, isPlaying]);
 
+  const listHeader = useMemo(() => (
+    <View>
+      <Text style={styles.header}>Music Challenges</Text>
+      <Text style={styles.subtitle}>
+        Complete listening challenges to earn points and unlock achievements
+      </Text>
+    </View>
+  ), [])
+
   const getItemLayout = useCallback((_: any, index: number) => ({
     length: CHALLENGE_CARD_HEIGHT,
     offset: CHALLENGE_CARD_HEIGHT * index,
@@ -65,6 +74,7 @@ export const ChallengeList = React.memo<ChallengeListProps>(({
   return (
     <FlatList
       data={challenges}
+      ListHeaderComponent={listHeader}
       renderItem={renderChallenge}
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.listContainer}

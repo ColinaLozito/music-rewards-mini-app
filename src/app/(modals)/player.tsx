@@ -1,5 +1,5 @@
 // Player modal - Full-screen audio player (Expo Router modal)
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -7,14 +7,12 @@ import {
   Alert,
   ScrollView,
   Image,
-  ImageStyle,
 } from 'react-native';
 import { GlassCard } from '../../components/ui/GlassCard';
 import { RoundedIconButton } from '../../components/ui/RoundedIconButton';
 import { PointsCounter } from '../../components/ui/PointsCounter';
 import { AudioProgressBar } from '../../components/ui/AudioProgressBar';
 import { usePlayerModal } from '../../hooks/usePlayerModal';
-import { THEME } from '../../theme/theme';
 import { styles } from './player.styles';
 import icons from '../../constants/icons';
 
@@ -29,7 +27,6 @@ export default function PlayerModal() {
     duration,
     displayPosition,
     progress,
-    challengeProgress,
     handlePlayPause,
     handleRestart,
     handleSeek,
@@ -42,11 +39,6 @@ export default function PlayerModal() {
       Alert.alert('Playback Error', error);
     }
   }, [error]);
-
-  const challengeStatusStyle = useMemo(() => ({
-    ...styles.challengeStatus,
-    color: displayChallenge?.completed ? THEME.colors.secondary : THEME.colors.accent
-  }), [displayChallenge?.completed]);
 
   if (error && !displayChallenge) {
     return (
@@ -134,16 +126,6 @@ export default function PlayerModal() {
             )}
           </View>
         </GlassCard>
-
-        {/* Completion Card - shown when challenge is completed */}
-        {displayChallenge?.completed && (
-          <GlassCard style={styles.completionCard}>
-            <View style={styles.completionRow}>
-              <Text style={styles.completionText}>Challenge completed</Text>
-              <Image source={icons.badge} style={styles.completionBadge} />
-            </View>
-          </GlassCard>
-        )}
 
         {/* Challenge Progress */}
         <GlassCard style={styles.challengeCard}>
