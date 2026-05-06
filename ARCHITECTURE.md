@@ -8,96 +8,26 @@ Expo Router + React Native app for music challenge rewards. Users complete liste
 ## Directory Structure
 ```
 src/
-├── app/                                   # Expo Router screens
-│   ├── _layout.tsx                        # Root layout (ToastContainer, LoadingOverlay, usePathname)
-│   ├── (tabs)/
-│   │   ├── index.tsx                      # Home screen (ChallengeList)
-│   │   ├── index.styles.tsx               # Home screen styles
-│   │   ├── profile.tsx                    # User progress + stats
-│   │   ├── profile.styles.tsx              # Profile screen styles
-│   │   └── _layout.tsx                    # Tabs layout config
-│   └── (modals)/
-│       ├── player.tsx                     # Full-screen player (UI)
-│       ├── player.styles.tsx               # Player screen styles
-│       └── _layout.tsx                    # Modal config (ToastContainer)
+├── app/                                   # Expo Router screens & layouts
+│   ├── (tabs)/                             # Tab navigation screens
+│   └── (modals)/                           # Modal screens
 │
 ├── components/                            # Reusable + feature components
-│   ├── ErrorBoundary.tsx                  # Global error boundary
-│   ├── ErrorBoundary.styles.tsx          # Error boundary styles
-│   ├── ui/                                # Reusable UI components
-│   │   ├── GlassCard.tsx                  # Glassmorphism card
-│   │   ├── GlassCard.styles.tsx           # GlassCard styles
-│   │   ├── GlassButton.tsx                # Glassmorphism button
-│   │   ├── GlassButton.styles.tsx          # GlassButton styles
-│   │   ├── RoundedIconButton.tsx          # Circular icon button
-│   │   ├── RoundedIconButton.styles.tsx     # RoundedIconButton styles
-│   │   ├── AudioProgressBar.tsx           # Reusable progress bar
-│   │   ├── AudioProgressBar.styles.tsx      # AudioProgressBar styles
-│   │   ├── MiniPlayer.tsx                 # Bottom bar (playing state)
-│   │   ├── MiniPlayer.styles.tsx           # MiniPlayer styles
-│   │   ├── LoadingOverlay.tsx             # Global loading overlay
-│   │   ├── LoadingOverlay.styles.tsx        # LoadingOverlay styles
-│   │   ├── AchievementBadge.tsx           # Achievement badge (reusable)
-│   │   ├── AchievementBadge.styles.tsx     # AchievementBadge styles
-│   │   ├── PointsCounter.tsx              # Points counter UI
-│   │   ├── PointsCounter.styles.tsx        # PointsCounter styles
-│   │   ├── Toast.tsx                     # Animated toast notification
-│   │   ├── Toast.styles.tsx                # Toast styles
-│   │   ├── ToastContainer.tsx              # Global toast container
-│   │   └── ToastContainer.styles.tsx        # ToastContainer styles
-│   ├── challenge/                         # Challenge-specific components
-│   │   ├── ChallengeCard.tsx              # Challenge card component
-│   │   ├── ChallengeCard.styles.tsx        # ChallengeCard styles
-│   │   ├── ChallengeList.tsx              # Challenge list component
-│   │   ├── ChallengeList.styles.tsx        # ChallengeList styles
-│   │   ├── ChallengeProgressList.tsx      # Reusable progress list
-│   │   ├── ChallengeProgressList.styles.tsx # ChallengeProgressList styles
-│   │   ├── DifficultyBadge.tsx             # Difficulty badge component
-│   │   └── DifficultyBadge.styles.tsx        # DifficultyBadge styles
-│   └── profile/                           # Profile-specific components
-│       ├── AchievementsList.tsx           # Data-driven achievements
-│       ├── AchievementsList.styles.tsx      # AchievementsList styles
-│       └── ChallengeProgressList.tsx      # Reusable progress list
+│   ├── ui/                                # Reusable UI components (GlassCard, RoundedIconButton, etc.)
+│   ├── challenge/                         # Challenge-specific components (ChallengeCard, ChallengeList, etc.)
+│   └── profile/                           # Profile-specific components (AchievementsList, etc.)
 │
 ├── hooks/                                 # Business logic hooks
-│   ├── useMusicPlayer.ts                  # Glue: TrackPlayer + Zustand + error handling
-│   ├── usePlayerModal.ts                  # Player modal logic (handlers, state)
-│   ├── useTrackPersistence.ts             # Progress sync + challenge completion
-│   ├── usePointsCounter.ts                # Points calculation (reactive)
-│   ├── useTrackPlayerInit.ts              # Player init + teardown
-│   └── useChallenges.ts                   # Challenge data loading
 │
 ├── services/                              # Singleton services (no React hooks)
-│   ├── PlaybackOrchestrator.ts            # Playback orchestration (singleton, NetInfo)
-│   ├── audioService.ts                    # TrackPlayer setup, addTrack, lock screen
-│   └── playbackService.ts                 # Headless service (remote events)
 │
 ├── stores/                                # Zustand state management
-│   ├── musicStore.ts                      # Player state (currentTrack, isPlaying)
-│   ├── userStore.ts                       # User data (progress, points, challenges)
-│   ├── toastStore.ts                      # Global toast notification state
-│   └── loadingStore.ts                    # Global loading overlay state
 │
 ├── types/                                 # TypeScript type definitions
-│   ├── index.ts                           # Global types (MusicChallenge, UseMusicPlayerReturn)
-│   ├── achievement.ts                     # Achievement types
-│   ├── musicChallenge.ts                  # Challenge type
-│   └── toast.ts                          # ToastType, Toast interfaces
 │
-├── constants/                             # Centralized data
-│   ├── theme.ts                           # Design tokens (colors, spacing, toast colors)
-│   ├── icons.ts                           # Centralized icon imports
-│   ├── achievements.ts                    # Achievement definitions (data-driven)
-│   ├── challenges.ts                      # Sample challenge data
-│   └── profileConstants.ts                # Profile-related constants
+├── constants/                             # Centralized data (theme, icons, achievements, etc.)
 │
 └── utils/                                 # Pure utility functions
-    ├── pointsCalculator.ts                # Points math
-    ├── timeFormat.ts                      # Duration formatting
-    ├── toast.ts                           # Helper: toast.success/warning/error
-    ├── urlAudioValidator.ts                # Audio URL validation
-    └── challengeHelpers.ts                 # Challenge helper functions
-```
 
 ---
 
