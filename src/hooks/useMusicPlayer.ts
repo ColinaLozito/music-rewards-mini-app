@@ -23,19 +23,7 @@ export const useMusicPlayer = (): UseMusicPlayerReturn & {
   const [error, setError] = useState<string | null>(null);
   const [isBuffering, setIsBuffering] = useState(false);
   const currentTrack = useMusicStore(selectCurrentTrack);
-  const setIsPlaying = useMusicStore((store) => store.setIsPlaying);
   const lastTrackRef = useRef<MusicChallenge | null>(null);
-
-  // Sync playback state to store
-  const prevPlayingRef = useRef(false);
-  useEffect(() => {
-    const currentState = playbackState.state ?? State.Paused;
-    const isCurrentlyPlaying = currentState === State.Playing;
-    if (prevPlayingRef.current !== isCurrentlyPlaying) {
-      prevPlayingRef.current = isCurrentlyPlaying;
-      setIsPlaying(isCurrentlyPlaying);
-    }
-  }, [playbackState]);
 
   const isPlayingValue = useMemo(() => {
     const currentState = playbackState.state ?? State.Paused;
@@ -101,7 +89,7 @@ export const useMusicPlayer = (): UseMusicPlayerReturn & {
         await TrackPlayer.reset();
       } catch (e) {}
       // Clear current track on failure for consistent state
-      useMusicStore.getState().setCurrentTrack(null);
+      useMusicStore.getState().setActiveChallengeId(null);
     }
   }, []);
 

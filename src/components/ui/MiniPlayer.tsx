@@ -5,7 +5,7 @@ import { GlassCard } from './GlassCard';
 import { RoundedIconButton } from './RoundedIconButton';
 import { useMusicPlayer } from '../../hooks/useMusicPlayer';
 import { usePlayerModal } from '../../hooks/usePlayerModal';
-import { useMusicStore, selectCurrentTrack, selectIsPlaying } from '../../stores/musicStore';
+import { useMusicStore, selectCurrentTrack } from '../../stores/musicStore';
 import { styles as miniStyles } from './MiniPlayer.styles';
 import { AudioProgressBar } from './AudioProgressBar';
 import icons from '../../constants/icons';
@@ -15,8 +15,7 @@ const TOTAL_PERCENTAGE = 100
 
 export function MiniPlayer() {
   const currentTrack = useMusicStore(selectCurrentTrack);
-  const isPlaying = useMusicStore(selectIsPlaying);
-  const { pause, resume } = useMusicPlayer();
+  const { pause, resume, isPlaying } = useMusicPlayer();
 
   const {
     progressBarRef,

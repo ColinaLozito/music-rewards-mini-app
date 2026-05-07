@@ -34,10 +34,10 @@ src/
 ## Design Decisions
 
 ### 1. Single Responsibility Principle (SRP)
-- `useMusicPlayer.ts`: Thin glue hook (65 lines) - bridges TrackPlayer hooks ↔ store + error handling
+- `useMusicPlayer.ts`: Thin glue hook - reads native playback state (`usePlaybackState`, `useProgress`), error handling, no store sync
 - `PlaybackOrchestrator.ts`: Singleton service (no hooks) - playback orchestration, network listener, track lifecycle
 - `useTrackPersistence.ts`: Progress sync (5s throttle) + challenge completion (98% threshold)
-- `usePlayerModal.ts`: Player modal logic - seek, drag, play/pause, restart, progress calculation
+- `usePlayerModal.ts`: Player modal logic - seek, drag, play/pause, restart, `useShallow` selector for `liveChallenge`
 - `useTrackPlayerInit.ts`: Init + teardown - kills zombie player on JS reload
 
 ### 2. Container/Presenter Pattern
@@ -62,14 +62,16 @@ src/
 ### Hooks (`src/hooks/`)
 
 **useMusicPlayer.ts**
-- Glue layer: TrackPlayer hooks → store sync, error handling, buffering detection
-- Dependencies: `react-native-track-player`, `PlaybackOrchestrator`, `musicStore`
-- Returns: `play`, `pause`, `resume`, `seekTo`, `retry`, `isBuffering`, `error`
+- Glue layer: TrackPlayer hooks → native state (`usePlaybackState`, `useProgress`), error handling, buffering detection
+- Dependencies: `react-native-track-player`, `PlaybackOrchestrator`
+- Returns: `isPlaying` (from native hook), `currentPosition`, `duration`, `pause`, `resume`, `seekTo`, `retry`, `isBuffering`, `error`
+- Note: No store sync for `isPlaying` — playback state stays in native hooks
 
 **usePlayerModal.ts**
 - Player modal state: seek, drag, play/pause, restart, progress calculation
-- Dependencies: `useMusicPlayer`, `musicStore`, `userStore`
+- Dependencies: `useMusicPlayer` (for `isPlaying`), `musicStore` (with `useShallow`), `userStore`
 - Returns: `progress`, `challengeProgress`, `displayChallenge`, `isCompleted`, handlers
+- Pattern: `useShallow` selector for `liveChallenge` to avoid re-renders on unrelated store changes
 
 **useTrackPersistence.ts**
 - Progress sync (5s throttle) → `listenedTimeMap`
@@ -127,10 +129,11 @@ flowchart TD
 ### Services (`src/services/`)
 
 **PlaybackOrchestrator.ts** (Singleton)
-- `play(track)`: Save prev progress → reset → addTrack → hybrid duration load (500ms fast-path) → waitForPlaybackStart (8s timeout)
+- `play(track)`: Save prev progress → reset → addTrack → hybrid duration load (500ms fast-path) → waitForPlaybackStart (8s timeout) → `setActiveChallengeId(track.id)`
 - `resume()`: Check if finished (≥98%) → seekTo(0) or play
 - `pause()`: TrackPlayer.pause()
 - `_startNetworkListener()`: NetInfo listener → auto-resume on reconnect, remount on network return
+- Note: Uses `setActiveChallengeId(id)` not `setCurrentTrack(track)` — enforces Single Source of Truth
 
 **audioService.ts** (Utilities)
 - TrackPlayer setup (iOS category: Playback, AllowBluetooth, AllowAirPlay)
@@ -144,9 +147,10 @@ flowchart TD
 ### Stores (`src/stores/`)
 
 **musicStore.ts** (Persisted: `challenges[]`)
-- State: `currentTrack`, `isPlaying`, `challenges[]`
-- Actions: `setCurrentTrack`, `setIsPlaying`, `updateProgress`, `markChallengeComplete`
-- Note: Does NOT persist playback state (`currentTrack`, `isPlaying`)
+- State: `activeChallengeId: string | null`, `challenges[]` (metadata only, no playback state)
+- Actions: `setActiveChallengeId`, `updateProgress`, `markChallengeComplete`
+- Note: Single Source of Truth — `activeChallengeId` stores only the ID, full object derived via selector
+- Note: Playback state (`isPlaying`, `position`) stays in native hooks (`usePlaybackState()`, `useProgress()`)
 
 **userStore.ts** (Persisted: `completedChallenges`, `listenedTimeMap`, `awardedChallenges`)
 - State: `completedChallenges[]`, `listenedTimeMap{}`, `awardedChallenges{}`
@@ -211,18 +215,7 @@ flowchart TD
         "completedAt": "2026-05-06T10:30:00Z"
       }
     ],
-    "currentTrack": {
-      "id": "challenge-1",
-      "title": "Summer Vibes",
-      "artist": "DJ Sunshine",
-      "duration": 180,
-      "points": 100,
-      "audioUrl": "https://example.com/track1.mp3",
-      "completed": false,
-      "progress": 45.5
-    },
-    "isPlaying": true,
-    "currentPosition": 81.5
+    "activeChallengeId": "challenge-1"
   },
   "userStore": {
     "completedChallenges": ["challenge-2"],
@@ -237,11 +230,16 @@ flowchart TD
 }
 ```
 
+**Note:** 
+- `activeChallengeId` stores only the ID (Single Source of Truth — full object derived via `selectCurrentTrack`)
+- Playback state (`isPlaying`, `position`) is managed by native hooks (`usePlaybackState()`, `useProgress()`) — not stored in Zustand
+
 **API Contract Explanation:**
 
 | Field | Source | Purpose |
 |-------|--------|---------|
 | `MusicChallenge` | `constants/challenges.ts` or API | Remote track data with `audioUrl`, `duration`, `points` |
+| `activeChallengeId` | Set on play → `setActiveChallengeId(id)` | Single Source of Truth — references `challenges[]` |
 | `listenedTimeMap` | `TrackPlayer.getProgress().position` | Local progress: `challengeId` → `maxSecondsListened` |
 | `progress` (in store) | Calculated: `(listenedTime / duration) * 100` | 0-100% for UI display |
 | `completed` | Set when `progress >= 98%` | Prevents re-awarding points |
@@ -252,6 +250,7 @@ flowchart TD
 2. `updateMaxListenedTime(id, position)` → writes to `listenedTimeMap`
 3. `updateProgress(id, (position/duration)*100)` → writes to `challenge.progress`
 4. When `progress >= 98%` → `markChallengeComplete()` + `completeChallenge()` + `recordAward()`
+5. `selectCurrentTrack` derives full object: `challenges.find(c => c.id === activeChallengeId)`
 
 ---
 
@@ -296,30 +295,31 @@ sequenceDiagram
     Note over Orchestrator: Hybrid Load: 500ms fast-path
     Orchestrator->>TP: play()
     TP-->>Orchestrator: PlaybackState = Playing
-    Orchestrator->>Store: setCurrentTrack(challenge) [HYDRATION]
-    Note over Store: currentTrack now set (MiniPlayer appears)
-    Orchestrator->>Store: setIsPlaying(true)
+    Orchestrator->>Store: setActiveChallengeId(challenge.id) [HYDRATION]
+    Note over Store: activeChallengeId now set (MiniPlayer appears)
+    Note over Orchestrator: isPlaying read from usePlaybackState() hook
 
     Note over Screen,Modal: Navigation Flow (Card Press)
     Card->>Screen: onPress(challenge)
-    Screen->>Store: selectCurrentTrack (check id)
+    Screen->>Store: selectActiveChallengeId (check id)
     alt Same track playing
         Screen->>Modal: router.push('/(modals)/player')
     else Different track
         Screen->>Orchestrator: play(challenge)
-        Orchestrator->>Store: setCurrentTrack(challenge) [HYDRATION]
+        Orchestrator->>Store: setActiveChallengeId(challenge.id) [HYDRATION]
         Screen->>Modal: router.push('/(modals)/player')
     end
 
     Note over Modal: Player Modal Reads Store
-    Modal->>Store: selectCurrentTrack (selector)
+    Modal->>Store: selectCurrentTrack (derives full object via activeChallengeId)
     Modal->>Store: selectChallenges (selector)
     Modal->>TP: useProgress() [read position]
 ```
 
-**Key Insight:** Data is "hydrated" into `musicStore.currentTrack` BEFORE `router.push()` via `setCurrentTrack()`. This allows:
+**Key Insight:** Data is "hydrated" into `musicStore.activeChallengeId` BEFORE `router.push()` via `setActiveChallengeId()`. This allows:
 - MiniPlayer to appear immediately after preload button press
-- Player Modal to read `currentTrack` from store upon mount (no loading flash)
+- Player Modal to derive `currentTrack` from store via `selectCurrentTrack` selector (Single Source of Truth)
+- No data duplication — full object derived from `challenges[]` using the ID
 
 ---
 
@@ -412,14 +412,10 @@ classDiagram
 
     class musicStore {
         -challenges: MusicChallenge[]
-        -currentTrack: MusicChallenge
-        -isPlaying: boolean
-        -currentPosition: number
-        +setCurrentTrack(track)
+        -activeChallengeId: string
+        +setActiveChallengeId(id)
         +updateProgress(id, progress)
         +markChallengeComplete(id)
-        +setIsPlaying(playing)
-        +setCurrentPosition(pos)
     }
 
     class userStore {
@@ -439,30 +435,56 @@ classDiagram
 
     musicStore "1" --> "*" MusicChallenge : stores
     userStore --> musicStore : reads challenge.id
-    TrackPlayerState --> musicStore : maps to currentTrack
+    TrackPlayerState --> musicStore : maps to activeChallengeId
     musicStore --> userStore : challenge completion
+    
+    note for musicStore "Single Source of Truth: activeChallengeId stores only ID, full object derived via selectCurrentTrack()"
 ```
 
+**Note:** `isPlaying` and `position` live in native hooks (`usePlaybackState()`, `useProgress()`), not in `musicStore`.
+
 **Selectors (Read):**
-- `selectCurrentTrack`: reads `musicStore.currentTrack`
+- `selectActiveChallengeId`: reads `musicStore.activeChallengeId`
+- `selectCurrentTrack`: derives full object → `state.challenges.find(c => c.id === state.activeChallengeId) || null`
 - `selectChallenges`: reads `musicStore.challenges`
+- `useShallow` pattern: `useMusicStore(useShallow((state: MusicStore) => selector))`
 - `selectCompletedChallenges`: reads `userStore.completedChallenges`
 - `selectListenedTimeMap`: reads `userStore.listenedTimeMap`
 
 **Actions (Write):**
-- `setCurrentTrack()`: writes `musicStore.currentTrack`
+- `setActiveChallengeId(id)`: writes `musicStore.activeChallengeId`
 - `updateProgress()`: writes `musicStore.challenges[].progress`
 - `markChallengeComplete()`: writes `musicStore.challenges[].completed`
 - `completeChallenge()`: writes `userStore.completedChallenges[]`
 - `updateMaxListenedTime()`: writes `userStore.listenedTimeMap`
 - `recordAward()`: writes `userStore.awardedChallenges`
 
+**Note:** `isPlaying` is NOT written to store — read from `usePlaybackState()` hook.
+**Note:** `activeChallengeId` enforces Single Source of Truth — no data duplication.
+
 ---
 
 ### `musicStore.ts` (Player State)
-- `currentTrack: MusicChallenge | null`
-- `isPlaying: boolean`
+- `activeChallengeId: string | null` (metadata reference only)
 - `challenges: MusicChallenge[]` (persisted)
+- **No playback state** (`isPlaying`, `position`) — these live in native hooks
+- **Single Source of Truth** — full object derived via `selectCurrentTrack`
+
+### Selector Pattern (useShallow)
+```typescript
+// Zustand 5.x: useShallow for memoized selectors
+import { useShallow } from 'zustand/react/shallow';
+
+// In usePlayerModal.ts:
+const liveChallenge = useMusicStore(useShallow((state: MusicStore) => {
+  if (!state.activeChallengeId) return null;
+  return state.challenges.find((c) => c.id === state.activeChallengeId) || null;
+}));
+
+// Deriving full object from ID (selectCurrentTrack):
+export const selectCurrentTrack = (state: MusicStore) => 
+  state.challenges.find((c) => c.id === state.activeChallengeId) || null;
+```
 
 ### `userStore.ts` (User Data)
 - `completedChallenges: string[]` (persisted)
@@ -747,10 +769,10 @@ src/
 ## Implementation Summary
 
 ### ✅ Completed (BASIC)
-- Proper Zustand store implementation with selectors
+- Proper Zustand store implementation with `useShallow` selectors
 - Custom hooks for business logic separation
 - Clean component composition
-- Proper TypeScript typing throughout
+- Proper TypeScript typing throughout (exit code 0)
 - react-native-track-player integration
 - Proper audio session management
 - Glass design system with blur effects
@@ -761,7 +783,7 @@ src/
 - Points counter animation
 - Audio playback with react-native-track-player
 - Proper navigation patterns (Expo Router)
-- Performance considerations (memoization, selectors)
+- Performance considerations (memoization, `useShallow` selectors)
 - AsyncStorage persistence
 - Background audio handling
 - Audio interruption handling

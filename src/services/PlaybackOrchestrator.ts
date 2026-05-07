@@ -22,20 +22,20 @@ export const PlaybackOrchestrator = {
   // --- Public Methods ---
 
   async play(track: MusicChallenge): Promise<void> {
-    const { currentTrack, updateProgress, setCurrentTrack } =
+    const { activeChallengeId, updateProgress, setActiveChallengeId } =
       useMusicStore.getState();
     let loadingShown = false;
 
     try {
       // 1. Guard: If same track, handle toggle
-      if (currentTrack?.id === track.id) {
+      if (activeChallengeId === track.id) {
         if (!(await this.isPlaying())) await this.resume();
         return;
       }
 
       // 2. Cleanup: Save progress of the previous track before switching
-      if (currentTrack?.id) {
-        await this._saveTrackProgress(currentTrack.id, updateProgress);
+      if (activeChallengeId) {
+        await this._saveTrackProgress(activeChallengeId, updateProgress);
       }
 
       // 3. Setup: Initialize and add new track to queue
@@ -50,7 +50,7 @@ export const PlaybackOrchestrator = {
       ]);
 
       if (quickProgress.duration > 0) {
-        await this._finalizeTrackStart(track, setCurrentTrack);
+        await this._finalizeTrackStart(track, setActiveChallengeId);
         return;
       }
 
@@ -59,7 +59,7 @@ export const PlaybackOrchestrator = {
       //const duration = await this._pollForDuration(4500);
       loadingShown = false;
 
-      await this._finalizeTrackStart(track, setCurrentTrack);
+      await this._finalizeTrackStart(track, setActiveChallengeId);
     } catch (err) {
       console.error("Orchestrator Play Error:", err);
       throw err;
@@ -137,7 +137,7 @@ export const PlaybackOrchestrator = {
 
   async _finalizeTrackStart(
     track: MusicChallenge,
-    setCurrentTrack: (t: MusicChallenge) => void,
+    setActiveChallengeId: (id: string | null) => void,
   ): Promise<void> {
     const completedChallenges = useUserStore.getState().completedChallenges;
     const isCompleted = completedChallenges.includes(track.id);
@@ -165,7 +165,7 @@ export const PlaybackOrchestrator = {
       if (lastPos > 0) await TrackPlayer.seekTo(lastPos);
     }
 
-    setCurrentTrack(track);
+    setActiveChallengeId(track.id);
   },
 
   async _pollForDuration(timeout: number): Promise<number> {
