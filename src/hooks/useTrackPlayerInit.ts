@@ -2,10 +2,6 @@
 import { useEffect, useRef, useState } from 'react';
 import TrackPlayer from 'react-native-track-player';
 import { setupTrackPlayer, teardownTrackPlayerForJsReload } from '../services/audioService';
-import playbackService from '../services/playbackService';
-
-// Register playback service at module level (once, not on every mount)
-TrackPlayer.registerPlaybackService(() => playbackService);
 
 export const useTrackPlayerInit = () => {
   const [playerReady, setPlayerReady] = useState(false);

@@ -21,6 +21,7 @@ export const useTrackPersistence = () => {
   const completeChallenge = useUserStore((store) => store.completeChallenge);
   const updateMaxListenedTime = useUserStore((store) => store.updateMaxListenedTime);
   const lastSyncedRef = useRef(0);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 1. Throttled progress sync: progress.position → listenedTimeMap (every 5s)
   useEffect(() => {
@@ -34,7 +35,7 @@ export const useTrackPersistence = () => {
     }
   }, [progress.position, currentTrack?.id]);
 
-  // 2. Challenge completion (98% threshold) + Rewards
+    // 2. Challenge completion (98% threshold) + Rewards
   useEffect(() => {
     if (!progress.position || !progress.duration || !currentTrack) return;
     const progressPercentage = (progress.position / progress.duration) * PROGRESS_PERCENT;
@@ -78,12 +79,19 @@ export const useTrackPersistence = () => {
         }
         
         // Delay toast to ensure modal fully unmounts (400ms)
-        setTimeout(() => {
+        if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+        toastTimeoutRef.current = setTimeout(() => {
           toast.success('Challenge completed successfully!');
+          toastTimeoutRef.current = null;
         }, 400);
       };
 
       handleCompletion().catch(console.error);
     }
+
+    // Cleanup: clear pending toast timeout on effect re-run or unmount
+    return () => {
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    };
   }, [progress.position, progress.duration, currentTrack?.id]);
 };

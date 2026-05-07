@@ -29,6 +29,8 @@ export function usePlayerModal() {
   const [progressBarWidth, setProgressBarWidth] = useState(300);
   const [isSeeking, setIsSeeking] = useState(false); // Buffer for race condition
   const progressBarRef = useRef<View>(null);
+  const seekTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchEndTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   const completedChallenges = useUserStore((state) => state.completedChallenges);
   const listenedTimeMap = useUserStore((state) => state.listenedTimeMap);
@@ -79,7 +81,12 @@ export function usePlayerModal() {
     setIsSeeking(true);
     seekTo(newPosition);
     setDraggedPosition(newPosition);
-    setTimeout(() => setIsSeeking(false), SEEK_BUFFER_MS);
+    // Clear previous timeout if exists
+    if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
+    seekTimeoutRef.current = setTimeout(() => {
+      setIsSeeking(false);
+      seekTimeoutRef.current = null;
+    }, SEEK_BUFFER_MS);
   }, [duration, seekTo]);
 
   const handleDrag = useCallback((event: GestureResponderEvent): void => {
@@ -130,15 +137,23 @@ export function usePlayerModal() {
     if (!isCompleted) return;
     setIsDragging(false);
     setIsSeeking(true);
-    setTimeout(() => {
+    // Clear previous timeout if exists
+    if (touchEndTimeoutRef.current) clearTimeout(touchEndTimeoutRef.current);
+    touchEndTimeoutRef.current = setTimeout(() => {
       setIsSeeking(false);
+      touchEndTimeoutRef.current = null;
     }, SEEK_BUFFER_MS);
   }, [isCompleted]);
   
-  useEffect(() => {
+    useEffect(() => {
       if (!isDragging && !isSeeking) {
         setDraggedPosition(progressPosition);
       }
+      // Cleanup: clear all pending timeouts on unmount
+      return () => {
+        if (seekTimeoutRef.current) clearTimeout(seekTimeoutRef.current);
+        if (touchEndTimeoutRef.current) clearTimeout(touchEndTimeoutRef.current);
+      };
     }, [isDragging, isSeeking, progressPosition]);
     
     const displayPosition = useMemo(() => 
