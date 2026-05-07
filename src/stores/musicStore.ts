@@ -5,19 +5,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { MusicChallenge } from '../types';
 import { SAMPLE_CHALLENGES } from '../constants/challenges';
 
-interface MusicStore {
+export interface MusicStore {
   // State
   challenges: MusicChallenge[];
-  currentTrack: MusicChallenge | null;
-  isPlaying: boolean;
-  currentPosition: number;
+  activeChallengeId: string | null;
   
   // Actions
-  setCurrentTrack: (track: MusicChallenge) => void;
+  setActiveChallengeId: (id: string | null) => void;
   updateProgress: (challengeId: string, progress: number) => void;
   markChallengeComplete: (challengeId: string) => void;
-  setIsPlaying: (playing: boolean) => void;
-  setCurrentPosition: (position: number) => void;
   reset: () => void;
 }
 
@@ -26,18 +22,16 @@ export const useMusicStore = create<MusicStore>()(
     (set, get) => ({
       // Initial state - will be overridden by persisted state if it exists
       challenges: SAMPLE_CHALLENGES,
-      currentTrack: null,
-      isPlaying: false,
-      currentPosition: 0,
+      activeChallengeId: null,
 
-      setCurrentTrack: (track: MusicChallenge) => {
-        set({ currentTrack: track });
+      setActiveChallengeId: (id: string | null) => {
+        set({ activeChallengeId: id });
       },
 
       updateProgress: (challengeId: string, progress: number) => {
         // Validate inputs
         if (!challengeId || typeof progress !== 'number' || progress < 0) return;
-        
+         
         set((state) => ({
           challenges: state.challenges.map((challenge) =>
             challenge.id === challengeId
@@ -62,20 +56,10 @@ export const useMusicStore = create<MusicStore>()(
         }));
       },
 
-      setIsPlaying: (playing: boolean) => {
-        set({ isPlaying: playing });
-      },
-
-      setCurrentPosition: (position: number) => {
-        set({ currentPosition: position });
-      },
-
       reset: () => {
         set({
           challenges: SAMPLE_CHALLENGES,
-          currentTrack: null,
-          isPlaying: false,
-          currentPosition: 0,
+          activeChallengeId: null,
         });
       },
     }),
@@ -91,6 +75,7 @@ export const useMusicStore = create<MusicStore>()(
 );
 
 // Selector functions for performance
-export const selectCurrentTrack = (state: MusicStore) => state.currentTrack;
-export const selectIsPlaying = (state: MusicStore) => state.isPlaying;
+export const selectCurrentTrack = (state: MusicStore) => 
+  state.challenges.find((c) => c.id === state.activeChallengeId) || null;
+export const selectActiveChallengeId = (state: MusicStore) => state.activeChallengeId;
 export const selectChallenges = (state: MusicStore) => state.challenges;

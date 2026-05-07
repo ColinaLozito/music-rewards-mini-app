@@ -71,7 +71,7 @@ export const useTrackPersistence = () => {
         }
         
         // Dismiss modal FIRST (toast lives in root layout, persists after dismiss)
-        useMusicStore.getState().setCurrentTrack(null);
+        useMusicStore.getState().setActiveChallengeId(null);
         // Only go back if we're in a modal (canGoBack check)
         if (router.canGoBack()) {
           router.back();
